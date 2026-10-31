@@ -1,0 +1,43 @@
+[project]
+name = "dubeval"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "vaishnavagrawal", email = "vaishnavkagrawal2.0@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "demucs==4.0.1",
+    "faster-whisper>=1.2.1",
+    "langcodes[data]==3.5.0",
+    "mediapipe==0.10.21",
+    "numpy>=1.26.4",
+    "openai>=3.42.0",
+    "opencv-python-headless>=4.11.0.86",
+    "pydantic>=2.14.2",
+    "scipy>=1.17.1",
+    "soundfile>=0.14.0",
+    "torch==2.5.1",
+    "torchaudio==2.5.1",
+]
+
+[project.scripts]
+dubeval = "dubeval:main"
+dubeval-viz = "dubeval.viz:main"
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.4",
+]

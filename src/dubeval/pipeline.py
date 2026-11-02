@@ -62,7 +62,7 @@ def _subtitle_issues(cues: list[dict], dub_segs, duration: float) -> list[dict]:
     out = []
     for c in cues:
         a, b = int(c["start"] / timing.HOP), int(np.ceil(c["end"] / timing.HOP))
-        if b <= a or c["end"] - c["start"] < 0.6:
+        if b <= a or len(dm[a:b]) == 0 or c["end"] - c["start"] < 0.6:
             continue
         cov = float(dm[a:b].mean())
         if cov < 0.15:
@@ -207,6 +207,7 @@ def run_pair(src: Track, dub: Track, work: Path, cfg: Config) -> Report:
     if src.path.resolve() != dub.path.resolve():
         issues += visual.video_identity(src.path, dub.path, duration)
     if cfg.visual:
+        ana = None
         try:
             ana = visual.MouthAnalyzer()
             cand = [x for x in issues if x["source"] == "timing" and x["category"] not in ("SYNC_DRIFT", "FAST_SPEECH")]
@@ -217,6 +218,9 @@ def run_pair(src: Track, dub: Track, work: Path, cfg: Config) -> Report:
                 visual.adjust(x, x["visual"])
         except Exception as e:
             warnings.append(f"visual analysis failed: {e}")
+        finally:
+            if ana is not None:
+                ana.close()
         t = _clock(timings, "visual", t)
 
     # ---- finalize

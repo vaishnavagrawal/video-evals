@@ -11,7 +11,7 @@ dependencies = [
     "faster-whisper>=1.2.1",
     "gdown==5.2.0",
     "langcodes[data]==3.5.0",
-    "mediapipe==0.10.21",
+    "mediapipe==0.10.35",
     "numpy>=1.26.4",
     "openai>=3.42.0",
     "opencv-python-headless>=4.11.0.86",
@@ -22,14 +22,34 @@ dependencies = [
     "torchaudio==2.5.1",
 ]
 
+[project.optional-dependencies]
+platform = [
+    "alembic==1.20.1",
+    "boto3==1.43.123",
+    "fastapi==0.162.0",
+    "fastmcp==4.1.4",
+    "hatchet-sdk==1.44.0",
+    "httpx==0.28.1",
+    "psycopg[binary]==3.3.6",
+    "pydantic-settings==2.16.2",
+    "pyjwt[crypto]==2.15.1",
+    "sqlalchemy==2.1.6",
+    "uvicorn==0.54.0",
+]
+
 [project.scripts]
 dubeval = "dubeval:main"
 dubeval-viz = "dubeval.viz:main"
 dubeval-project = "dubeval.projects:main"
+vreview-api = "vreview.api.app:main"
+vreview-worker = "vreview.worker:main"
 
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = ["dubeval", "vreview"]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

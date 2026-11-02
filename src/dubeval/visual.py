@@ -7,36 +7,73 @@ shows high variance in that ratio. Used to raise/lower severity of timing issues
 Also verifies the two videos are frame-identical (the dub must not alter the picture).
 """
 from __future__ import annotations
+import hashlib
+from pathlib import Path
 
 import numpy as np
 
 from .media import sample_frames
 
 UPPER_LIP, LOWER_LIP, FOREHEAD, CHIN = 13, 14, 10, 152
+MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
+MODEL_SHA256 = "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff"
+
+
+def ensure_model() -> Path:
+    cache_dir = Path.home() / ".cache" / "dubeval"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    model_path = cache_dir / "face_landmarker.task"
+    if model_path.exists():
+        h = hashlib.sha256(model_path.read_bytes()).hexdigest()
+        if h == MODEL_SHA256:
+            return model_path
+    import urllib.request
+    tmp = model_path.with_suffix(".tmp")
+    req = urllib.request.Request(MODEL_URL, headers={"User-Agent": "dubeval/1.0"})
+    with urllib.request.urlopen(req) as resp, open(tmp, "wb") as f:
+        while chunk := resp.read(64 * 1024):
+            f.write(chunk)
+    observed = hashlib.sha256(tmp.read_bytes()).hexdigest()
+    if observed != MODEL_SHA256:
+        tmp.unlink(missing_ok=True)
+        raise ValueError(f"face_landmarker.task sha256 mismatch: got {observed}, expected {MODEL_SHA256}")
+    tmp.replace(model_path)
+    return model_path
 
 
 class MouthAnalyzer:
     def __init__(self, max_faces: int = 4):
-        import mediapipe as mp
+        from mediapipe.tasks.python import BaseOptions, vision
 
-        self.mesh = mp.solutions.face_mesh.FaceMesh(static_image_mode=False, max_num_faces=max_faces,
-                                                    refine_landmarks=False, min_detection_confidence=0.5,
-                                                    min_tracking_confidence=0.5)
-
+        model_path = ensure_model()
+        options = vision.FaceLandmarkerOptions(
+            base_options=BaseOptions(model_asset_path=str(model_path)),
+            running_mode=vision.RunningMode.VIDEO,
+            num_faces=max_faces,
+            min_face_detection_confidence=0.5,
+            min_face_presence_confidence=0.5,
+            min_tracking_confidence=0.5,
+        )
+        self.landmarker = vision.FaceLandmarker.create_from_options(options)
+        self._timestamp_ms = 0
     def analyze(self, video, start: float, end: float, fps: float = 8.0, width: int = 640) -> dict:
         frames = sample_frames(video, start, end, fps, width)
         tracks: dict[int, list[float]] = {}
         areas: dict[int, float] = {}
         face_frames = 0
+        import mediapipe as mp
+
+        step_ms = max(1, int(round(1000.0 / fps)))
         for f in frames:
-            res = self.mesh.process(f)
-            if not res.multi_face_landmarks:
+            self._timestamp_ms += step_ms
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=f)
+            res = self.landmarker.detect_for_video(mp_image, timestamp_ms=self._timestamp_ms)
+            if not res.face_landmarks:
                 continue
             face_frames += 1
             # stable ordering by horizontal position so a face keeps its slot across frames
-            faces = sorted(res.multi_face_landmarks, key=lambda m: m.landmark[1].x)
-            for slot, lm in enumerate(faces):
-                p = lm.landmark
+            faces = sorted(res.face_landmarks, key=lambda m: m[1].x)
+            for slot, p in enumerate(faces):
                 xs = np.array([q.x for q in p])
                 ys = np.array([q.y for q in p])
                 face_h = abs(p[CHIN].y - p[FOREHEAD].y) + 1e-6
@@ -54,6 +91,17 @@ class MouthAnalyzer:
             "mouth_activity": round(mouth, 4),
             "speaking_likely": (mouth >= 0.02) if usable else None,
         }
+
+    def close(self) -> None:
+        if getattr(self, "landmarker", None) is not None:
+            self.landmarker.close()
+            self.landmarker = None
+
+    def __del__(self) -> None:
+        try:
+            self.close()
+        except Exception:
+            pass
 
 
 def video_identity(orig, dub, duration: float, n: int = 12, width: int = 160) -> list[dict]:

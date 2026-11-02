@@ -4,3 +4,6 @@ data/
 out/
 *.work/
 projects/
+scratch/
+.pytest_cache/
+.env

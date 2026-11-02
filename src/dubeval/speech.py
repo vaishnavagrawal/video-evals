@@ -107,7 +107,8 @@ def whisper_model(model: str, threads: int):
 
 def _local(wav: Path, language: str | None, model: str, threads: int) -> dict:
     m = whisper_model(model, threads)
-    segs, info = m.transcribe(str(wav), language=language, word_timestamps=True, vad_filter=True,
+    audio = load(wav)
+    segs, info = m.transcribe(audio, language=language, word_timestamps=True, vad_filter=True,
                               beam_size=1, condition_on_previous_text=False)
     segments, words = [], []
     for s in segs:

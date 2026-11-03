@@ -79,6 +79,11 @@ Before a real deployment:
 
 ## Pointers and known gaps
 
+- Review triage + web app (2026-11-03, spec `docs/triage-and-ui-contract.md`):
+  - Code-review triage: priority `blocker | should-fix | needs-human | nit` (rule-based), areas, tags, threads, verdict. LLM (`VREVIEW_TRIAGE_LLM_MODELS`) writes thread comments and the summary only, cached, best-effort with a 600 s cap.
+  - `web/`: Next.js + better-auth (email/password, JWKS on :53000), dashboard, upload (candidate + original + reference images, multipart, retry, cancel/abort), review page (synced players, timeline, threads, feedback that survives reload). Run: `web/README.md`.
+  - Verified end to end on a 60 s pair through the browser: upload -> worker -> `request_changes`, score 2.1, 9 threads, all comments LLM-written.
+  - Gaps: runs whose worker dies stay `running` forever (e.g. `run_258c273815b1` from 2026-10-31), nothing reconciles them. A low score can sit next to "Approved" (10 s clip: 3.5 / approve) because the score penalizes every issue while the verdict only looks at blockers; the UI should explain or the score needs normalizing. The LLM judge sometimes labels a missing dub as `UNTRANSLATED`, which adds a false `language` area. The LLM summary is accurate but formulaic. Dev DB run `run_01843ba87dc7` has probe feedback rows from UI testing.
 - Security:
   - URL ingest (`ingest.py`) allows any https host, so it can be used to reach internal services (SSRF). Before opening to users, block private/link-local IPs after DNS resolution, or restrict ingest to uploads.
   - Webhook URLs aren't checked against private addresses either (same SSRF risk).

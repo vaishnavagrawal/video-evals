@@ -1,0 +1,41 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 53000",
+    "dev:mock": "NEXT_PUBLIC_VREVIEW_MOCK=1 next dev -p 53000",
+    "build": "next build",
+    "start": "next start -p 53000",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "auth:migrate": "dotenv -e .env.local -- auth migrate --config src/lib/auth.ts --yes",
+    "screenshots": "node scripts/screenshots.mjs",
+    "verify:auth": "node scripts/verify-auth.mjs"
+  },
+  "dependencies": {
+    "better-auth": "1.7.15",
+    "next": "16.4.4",
+    "pg": "^8.23.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "auth": "1.7.15",
+    "dotenv-cli": "^11.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.4",
+    "jose": "^6.2.15",
+    "playwright-core": "^1.64.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@12.5.1"
+}

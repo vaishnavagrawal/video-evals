@@ -1,0 +1,2698 @@
+{
+  "evaluator": "dubbing",
+  "version": "1",
+  "status": "ok",
+  "reason": null,
+  "score": 12.4,
+  "issues": [
+    {
+      "id": "dubbing:hi->es:I001",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "minor",
+      "confidence": 0.9,
+      "t0": 3.46,
+      "t1": 4.48,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 1.0s has only 0% dubbed speech under it.",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": null,
+        "evidence": {
+          "orig_start": 3.46,
+          "orig_end": 4.48,
+          "dub_start": null,
+          "dub_end": null,
+          "coverage": 0.0,
+          "line_index": 1
+        },
+        "visual": {
+          "frames_analyzed": 8,
+          "face_frames": 8,
+          "max_face_area": 0.0288,
+          "mouth_activity": 0.0048,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I002",
+      "evaluator": "dubbing",
+      "category": "MISSING_CONTENT",
+      "severity": "minor",
+      "confidence": 0.9,
+      "t0": 5.31,
+      "t1": 9.5,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub omits the education portfolio, translating 'shiksha mantri' (Minister of Education) simply as 'Ministro Invitado' (Guest Minister).",
+      "fix_hint": "Revise to include education, such as 'Distinguido invitado especial y Ministro de Educación, señor R. D. Tripathi,'.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "अतिती विशेशिक्षन मंतरी श्री आर्डी त्रिपती जी",
+        "dubbed_text": "Distinguido Ministro Invitado, Señor Ardi Tripati,",
+        "evidence": {
+          "line_index": 2
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I003",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "major",
+      "confidence": 0.83,
+      "t0": 18.69,
+      "t1": 20.41,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.73s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~1.73s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "अगर ऐसी आस्मान की बुलान दियो",
+        "dubbed_text": "Si hoy en día el AISI está alcanzando las mismísimas alturas del cielo,",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 15.78,
+          "orig_end": 18.69,
+          "dub_start": 15.59,
+          "dub_end": 20.41,
+          "coverage": 1.0,
+          "line_index": 4
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 14,
+          "max_face_area": 0.033,
+          "mouth_activity": 0.0386,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I004",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 23.33,
+      "t1": 25.44,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 2.1s has only 0% dubbed speech under it.",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "इंसान को जाता है",
+        "dubbed_text": null,
+        "evidence": {
+          "orig_start": 23.33,
+          "orig_end": 25.44,
+          "dub_start": null,
+          "dub_end": null,
+          "coverage": 0.0,
+          "line_index": 7
+        },
+        "visual": {
+          "frames_analyzed": 17,
+          "face_frames": 1,
+          "max_face_area": 0.0279,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I005",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 27.71,
+      "t1": 29.31,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 1.60s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~1.60s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "विरु सहास्त्र बुद्धे गिव मैं एंट्री",
+        "dubbed_text": "el Doctor Viru Sahastrabode.",
+        "evidence": {
+          "orig_start": 25.92,
+          "orig_end": 29.31,
+          "dub_start": 25.54,
+          "dub_end": 27.71,
+          "coverage": 0.53,
+          "line_index": 8
+        },
+        "visual": {
+          "frames_analyzed": 13,
+          "face_frames": 13,
+          "max_face_area": 0.0322,
+          "mouth_activity": 0.0493,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I006",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 34.59,
+      "t1": 36.7,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 2.1s has only 0% dubbed speech under it.",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": null,
+        "evidence": {
+          "orig_start": 34.59,
+          "orig_end": 36.7,
+          "dub_start": null,
+          "dub_end": null,
+          "coverage": 0.0,
+          "line_index": 11
+        },
+        "visual": {
+          "frames_analyzed": 17,
+          "face_frames": 14,
+          "max_face_area": 0.0501,
+          "mouth_activity": 0.0029,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I007",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "major",
+      "confidence": 0.76,
+      "t0": 41.6,
+      "t1": 43.04,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.44s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~1.44s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "32 साल से इनोंने निरंतर",
+        "dubbed_text": "Durante 32 años sin descanso en el Instituto",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 38.53,
+          "orig_end": 41.6,
+          "dub_start": 38.53,
+          "dub_end": 43.04,
+          "coverage": 1.0,
+          "line_index": 12
+        },
+        "visual": {
+          "frames_analyzed": 12,
+          "face_frames": 12,
+          "max_face_area": 0.029,
+          "mouth_activity": 0.024,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I008",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 46.78,
+      "t1": 48.35,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 1.57s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~1.57s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "बलादकर पे बलादकर किया",
+        "dubbed_text": "ha cometido violación tras violación.",
+        "evidence": {
+          "orig_start": 43.97,
+          "orig_end": 48.35,
+          "dub_start": 43.78,
+          "dub_end": 46.78,
+          "coverage": 0.64,
+          "line_index": 14
+        },
+        "visual": {
+          "frames_analyzed": 13,
+          "face_frames": 13,
+          "max_face_area": 0.037,
+          "mouth_activity": 0.1085,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I009",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 53.76,
+      "t1": 55.81,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 2.05s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~2.05s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "उमीद है आगे भी करते रहेंगे",
+        "dubbed_text": "Es decir, milagro tras milagro. Esperamos que siga haciéndolo.",
+        "evidence": {
+          "orig_start": 49.15,
+          "orig_end": 55.81,
+          "dub_start": 48.83,
+          "dub_end": 53.76,
+          "coverage": 0.61,
+          "line_index": 15
+        },
+        "visual": {
+          "frames_analyzed": 16,
+          "face_frames": 13,
+          "max_face_area": 0.038,
+          "mouth_activity": 0.0698,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I010",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 64.67,
+      "t1": 66.91,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 2.24s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~2.24s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "तो अस्ट्यार्य होता है कि एक इंसान अपने जीवन काल में इतनी बलाद कर कैसे कर सकता है",
+        "dubbed_text": "Nos sorprende que una sola persona en toda su vida pueda cometer tantas violaciones.",
+        "evidence": {
+          "orig_start": 56.96,
+          "orig_end": 66.91,
+          "dub_start": 56.8,
+          "dub_end": 64.67,
+          "coverage": 0.65,
+          "line_index": 16
+        },
+        "visual": {
+          "frames_analyzed": 18,
+          "face_frames": 17,
+          "max_face_area": 0.0501,
+          "mouth_activity": 0.041,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I011",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 72.96,
+      "t1": 75.13,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 2.18s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~2.18s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "इन्होंने कड़ी तपास्या से आपने आपको इस काबिल बुनाया है",
+        "dubbed_text": "Con una disciplina rigurosa, se ha vuelto capaz de lograr.",
+        "evidence": {
+          "orig_start": 68.16,
+          "orig_end": 75.13,
+          "dub_start": 68.07,
+          "dub_end": 72.96,
+          "coverage": 0.59,
+          "line_index": 17
+        },
+        "visual": {
+          "frames_analyzed": 17,
+          "face_frames": 17,
+          "max_face_area": 0.0603,
+          "mouth_activity": 0.0701,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I012",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "major",
+      "confidence": 0.83,
+      "t0": 79.01,
+      "t1": 80.73,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.73s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~1.73s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "वक्त का सई उप्योग",
+        "dubbed_text": "Aprovecha bien el tiempo y cada hora al máximo.",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 76.96,
+          "orig_end": 79.01,
+          "dub_start": 76.87,
+          "dub_end": 80.73,
+          "coverage": 1.0,
+          "line_index": 18
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 14,
+          "max_face_area": 0.0297,
+          "mouth_activity": 0.0485,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I013",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 79.46,
+      "t1": 82.05,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 2.59s after the original actor begins speaking. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Shift this dubbed line earlier by ~2.59s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "घंटी का पूर्ण इस्तेमाल कोई इन से सीके",
+        "dubbed_text": "hora al máximo. que alguien aprenda de él.",
+        "evidence": {
+          "onset_delta": 2.59,
+          "orig_start": 79.46,
+          "orig_end": 85.98,
+          "dub_start": 82.05,
+          "dub_end": 83.55,
+          "coverage": 0.43,
+          "line_index": 19
+        },
+        "visual": {
+          "frames_analyzed": 21,
+          "face_frames": 21,
+          "max_face_area": 0.03,
+          "mouth_activity": 0.0434,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I014",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 83.55,
+      "t1": 85.98,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 2.43s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~2.43s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "घंटी का पूर्ण इस्तेमाल कोई इन से सीके",
+        "dubbed_text": "hora al máximo. que alguien aprenda de él.",
+        "evidence": {
+          "orig_start": 79.46,
+          "orig_end": 85.98,
+          "dub_start": 82.05,
+          "dub_end": 83.55,
+          "coverage": 0.43,
+          "line_index": 19
+        },
+        "visual": {
+          "frames_analyzed": 19,
+          "face_frames": 19,
+          "max_face_area": 0.0384,
+          "mouth_activity": 0.0561,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I015",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "minor",
+      "confidence": 0.69,
+      "t0": 86.5,
+      "t1": 87.07,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.58s after the original actor begins speaking.",
+      "fix_hint": "Shift this dubbed line earlier by ~0.58s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "आज",
+        "dubbed_text": "Aprendan de él, aprendan. Siéntate, siéntate. Ya, ya, ya.",
+        "evidence": {
+          "onset_delta": 0.58,
+          "orig_start": 86.5,
+          "orig_end": 90.43,
+          "dub_start": 87.07,
+          "dub_end": 90.78,
+          "coverage": 0.85,
+          "line_index": 20
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 6,
+          "max_face_area": 0.0277,
+          "mouth_activity": 0.0139,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I016",
+      "evaluator": "dubbing",
+      "category": "BACKGROUND_DROPOUT",
+      "severity": "major",
+      "confidence": 0.7,
+      "t0": 87.32,
+      "t1": 91.84,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Background music/effects are ~17 dB quieter in the dub for 4.5s.",
+      "fix_hint": "Re-mix using the original background stem for this window (ducking or stem loss).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "audio",
+        "original_text": null,
+        "dubbed_text": null,
+        "evidence": {
+          "median_db_drop": 17.0,
+          "stems": true
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I017",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.69,
+      "t0": 91.04,
+      "t1": 91.91,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.86s before the original actor speaks.",
+      "fix_hint": "Delay this dubbed line by ~0.86s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "हम सब चात्र यहां",
+        "dubbed_text": "Hoy estamos todos aquí, nosotros, los estudiantes.",
+        "evidence": {
+          "onset_delta": -0.86,
+          "orig_start": 91.91,
+          "orig_end": 94.27,
+          "dub_start": 91.04,
+          "dub_end": 94.56,
+          "coverage": 0.84,
+          "line_index": 21
+        },
+        "visual": {
+          "frames_analyzed": 7,
+          "face_frames": 7,
+          "max_face_area": 0.0312,
+          "mouth_activity": 0.0479,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I018",
+      "evaluator": "dubbing",
+      "category": "ENERGY_MISMATCH",
+      "severity": "minor",
+      "confidence": 0.5,
+      "t0": 91.91,
+      "t1": 94.27,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original line is delivered loudly (z=+1.7) but the dub is flat (z=-1.2).",
+      "fix_hint": "Regenerate with a higher-intensity/emotional voice style (shouting/excited).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "audio",
+        "original_text": "हम सब चात्र यहां",
+        "dubbed_text": "Hoy estamos todos aquí, nosotros, los estudiantes.",
+        "evidence": {
+          "orig_level_z": 1.74,
+          "dub_level_z": -1.24,
+          "line_index": 21
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I019",
+      "evaluator": "dubbing",
+      "category": "BACKGROUND_DROPOUT",
+      "severity": "minor",
+      "confidence": 0.7,
+      "t0": 103.74,
+      "t1": 105.5,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Background music/effects are ~16 dB quieter in the dub for 1.8s.",
+      "fix_hint": "Re-mix using the original background stem for this window (ducking or stem loss).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "audio",
+        "original_text": null,
+        "dubbed_text": null,
+        "evidence": {
+          "median_db_drop": 16.1,
+          "stems": true
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I020",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "major",
+      "confidence": 0.79,
+      "t0": 106.5,
+      "t1": 107.07,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.58s after the original actor begins speaking. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Shift this dubbed line earlier by ~0.58s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": "Así,",
+        "evidence": {
+          "onset_delta": 0.58,
+          "orig_start": 106.5,
+          "orig_end": 107.65,
+          "dub_start": 107.07,
+          "dub_end": 107.74,
+          "coverage": 0.5,
+          "line_index": 25
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 6,
+          "max_face_area": 0.0361,
+          "mouth_activity": 0.0562,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I021",
+      "evaluator": "dubbing",
+      "category": "MID_LINE_GAP",
+      "severity": "major",
+      "confidence": 0.8,
+      "t0": 111.49,
+      "t1": 112.47,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "0.98s silence in the dub while the original actor is speaking. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Re-time the segments around this pause or fill it with the missing phrase.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "ऐसी ही का नाम रोशन करेंगे",
+        "dubbed_text": "haremos brillar el nombre de nuestra institución. ¡Hice! ¡Hice!",
+        "evidence": {
+          "orig_start": 108.19,
+          "orig_end": 112.48,
+          "dub_start": 108.16,
+          "dub_end": 114.24,
+          "coverage": 0.77,
+          "line_index": 26
+        },
+        "visual": {
+          "frames_analyzed": 8,
+          "face_frames": 8,
+          "max_face_area": 0.0781,
+          "mouth_activity": 0.0608,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I022",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "major",
+      "confidence": 0.84,
+      "t0": 112.48,
+      "t1": 114.24,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.76s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~1.76s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "ऐसी ही का नाम रोशन करेंगे",
+        "dubbed_text": "haremos brillar el nombre de nuestra institución. ¡Hice! ¡Hice!",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 108.19,
+          "orig_end": 112.48,
+          "dub_start": 108.16,
+          "dub_end": 114.24,
+          "coverage": 0.77,
+          "line_index": 26
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 10,
+          "max_face_area": 0.0616,
+          "mouth_activity": 0.0552,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I023",
+      "evaluator": "dubbing",
+      "category": "MISSING_CONTENT",
+      "severity": "minor",
+      "confidence": 0.85,
+      "t0": 117.22,
+      "t1": 119.04,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The word 'todos' ('everyone', translating Hindi 'सबको') is missing, leaving the sentence cut off at the preposition 'a'.",
+      "fix_hint": "Deliver the complete line: '¡Se lo demostraremos a todos!'",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "देंगे सबको",
+        "dubbed_text": "Se lo desmostraremos a",
+        "evidence": {
+          "line_index": 28
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I024",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "critical",
+      "confidence": 0.9,
+      "t0": 124.35,
+      "t1": 127.55,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 3.20s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~3.20s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "बलात कर करने की शामता यहां के छात्रों में है",
+        "dubbed_text": "Ningún estudiante en el mundo tiene tanta capacidad para violar como los de aquí.",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 119.36,
+          "orig_end": 124.35,
+          "dub_start": 119.49,
+          "dub_end": 127.55,
+          "coverage": 0.83,
+          "line_index": 29
+        },
+        "visual": {
+          "frames_analyzed": 26,
+          "face_frames": 26,
+          "max_face_area": 0.0506,
+          "mouth_activity": 0.0361,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I025",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 124.71,
+      "t1": 128.03,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 3.33s after the original actor begins speaking. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Shift this dubbed line earlier by ~3.33s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "संसर के किसी छात्रों में नहीं लो",
+        "dubbed_text": "para violar como los de aquí. Ningún otro estudiante.",
+        "evidence": {
+          "onset_delta": 3.33,
+          "orig_start": 124.71,
+          "orig_end": 129.85,
+          "dub_start": 128.03,
+          "dub_end": 129.53,
+          "coverage": 0.84,
+          "line_index": 30
+        },
+        "visual": {
+          "frames_analyzed": 27,
+          "face_frames": 27,
+          "max_face_area": 0.0319,
+          "mouth_activity": 0.0356,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I026",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "critical",
+      "confidence": 0.76,
+      "t0": 130.53,
+      "t1": 133.02,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 2.5s has only 24% dubbed speech under it. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "अधर छात्रों लो अधर छात्रों",
+        "dubbed_text": "Ningún otro.",
+        "evidence": {
+          "orig_start": 130.53,
+          "orig_end": 133.02,
+          "dub_start": 130.11,
+          "dub_end": 131.13,
+          "coverage": 0.24,
+          "line_index": 31
+        },
+        "visual": {
+          "frames_analyzed": 20,
+          "face_frames": 20,
+          "max_face_area": 0.0328,
+          "mouth_activity": 0.0707,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I027",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 139.62,
+      "t1": 144.25,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub implies the institution needed something, but the original just refers to giving 'this thing' to the institution without specifying what it is.",
+      "fix_hint": "Match the original intent more closely: 'Usted le dio a esta institución la cosa que necesitaba.'",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "इस संस्तान को",
+        "dubbed_text": "Usted le dio a esta institución justo lo que más necesita",
+        "evidence": {
+          "line_index": 33
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I028",
+      "evaluator": "dubbing",
+      "category": "SYNC_DRIFT",
+      "severity": "minor",
+      "confidence": 0.75,
+      "t0": 139.62,
+      "t1": 178.27,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub is consistently early by ~0.40s over 8 lines.",
+      "fix_hint": "Apply a +0.40s offset to dubbed lines 33-42.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": null,
+        "evidence": {
+          "median_onset_delta": -0.4,
+          "lines": [
+            33,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42
+          ]
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I029",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "critical",
+      "confidence": 0.9,
+      "t0": 141.66,
+      "t1": 144.25,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 2.59s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~2.59s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "इस संस्तान को",
+        "dubbed_text": "Usted le dio a esta institución justo lo que más necesita",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 139.62,
+          "orig_end": 141.66,
+          "dub_start": 139.43,
+          "dub_end": 144.25,
+          "coverage": 1.0,
+          "line_index": 33
+        },
+        "visual": {
+          "frames_analyzed": 21,
+          "face_frames": 8,
+          "max_face_area": 0.0284,
+          "mouth_activity": 0.0377,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I030",
+      "evaluator": "dubbing",
+      "category": "MISSING_CONTENT",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 142.08,
+      "t1": 143.26,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub omits the core action of giving a thing ('चीज दी') which is essential to the meaning of the original.",
+      "fix_hint": "Include the full phrase: 'usted le dio a esta institución justo lo que más necesitaba.'",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "चीज दी",
+        "dubbed_text": "justo lo que",
+        "evidence": {
+          "line_index": 34
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I031",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 145.79,
+      "t1": 147.52,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 1.73s after the original actor begins speaking. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Shift this dubbed line earlier by ~1.73s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "जरूरत थी दन दन स्तन",
+        "dubbed_text": "Dinero, dinero Senos",
+        "evidence": {
+          "onset_delta": 1.73,
+          "orig_start": 145.79,
+          "orig_end": 151.01,
+          "dub_start": 147.52,
+          "dub_end": 149.73,
+          "coverage": 0.36,
+          "line_index": 36
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 14,
+          "max_face_area": 0.048,
+          "mouth_activity": 0.0337,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I032",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "critical",
+      "confidence": 0.95,
+      "t0": 145.79,
+      "t1": 151.01,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub completely misinterprets the original, which refers to 'need' and 'breasts', not money and 'senos' as a wordplay.",
+      "fix_hint": "Ensure the dub reflects the intended meaning of 'need' and 'breasts': 'Lo que necesitábamos eran pechos.'",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "जरूरत थी दन दन स्तन",
+        "dubbed_text": "Dinero, dinero Senos",
+        "evidence": {
+          "line_index": 36
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I033",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "major",
+      "confidence": 0.82,
+      "t0": 149.73,
+      "t1": 151.01,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 1.28s before the original line ends (actor still speaking, no voice).",
+      "fix_hint": "Slow this line down or extend translation to fill ~1.28s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "जरूरत थी दन दन स्तन",
+        "dubbed_text": "Dinero, dinero Senos",
+        "evidence": {
+          "orig_start": 145.79,
+          "orig_end": 151.01,
+          "dub_start": 147.52,
+          "dub_end": 149.73,
+          "coverage": 0.36,
+          "line_index": 36
+        },
+        "visual": {
+          "frames_analyzed": 10,
+          "face_frames": 6,
+          "max_face_area": 0.0529,
+          "mouth_activity": 0.0163,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I034",
+      "evaluator": "dubbing",
+      "category": "UNMATCHED_SPEECH",
+      "severity": "major",
+      "confidence": 0.6,
+      "t0": 152.58,
+      "t1": 153.34,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "0.76s of dubbed speech where the original has no speech nearby. On-screen face is not talking while dubbed voice plays.",
+      "fix_hint": "Check if this line belongs to another timestamp or is a hallucinated/duplicated TTS line.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": null,
+        "evidence": {},
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 3,
+          "max_face_area": 0.0333,
+          "mouth_activity": 0.0056,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I035",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.63,
+      "t0": 153.76,
+      "t1": 154.47,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.70s before the original actor speaks. No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Delay this dubbed line by ~0.70s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": "senos significa",
+        "evidence": {
+          "onset_delta": -0.7,
+          "orig_start": 154.47,
+          "orig_end": 155.04,
+          "dub_start": 153.76,
+          "dub_end": 154.85,
+          "coverage": 0.67,
+          "line_index": 37
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I036",
+      "evaluator": "dubbing",
+      "category": "MISSING_CONTENT",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 154.47,
+      "t1": 155.04,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The original line is missing, but the dub introduces a new concept about 'senos' meaning, which is not present in the context.",
+      "fix_hint": "Remove or clarify that this is an explanation being added out of context.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": null,
+        "dubbed_text": "senos significa",
+        "evidence": {
+          "line_index": 37
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I037",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.65,
+      "t0": 155.84,
+      "t1": 156.58,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.74s before the original actor speaks.",
+      "fix_hint": "Delay this dubbed line by ~0.74s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "अपमांड दन होता ये",
+        "dubbed_text": "¡Qué barbaridad! ¡Qué falta de respeto es esta!",
+        "evidence": {
+          "onset_delta": -0.74,
+          "orig_start": 156.58,
+          "orig_end": 158.56,
+          "dub_start": 155.84,
+          "dub_end": 158.27,
+          "coverage": 0.87,
+          "line_index": 38
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 6,
+          "max_face_area": 0.034,
+          "mouth_activity": 0.0164,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I038",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "major",
+      "confidence": 0.85,
+      "t0": 156.58,
+      "t1": 158.56,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub translates 'barbarity' and 'lack of respect', but the original seems to be referring to something more specific like 'disgrace' or 'shame'.",
+      "fix_hint": "Use a more accurate translation such as '¡Qué vergüenza!' or '¡Qué deshonra!' depending on context.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "अपमांड दन होता ये",
+        "dubbed_text": "¡Qué barbaridad! ¡Qué falta de respeto es esta!",
+        "evidence": {
+          "line_index": 38
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I039",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.6,
+      "t0": 158.53,
+      "t1": 159.14,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.61s before the original actor speaks.",
+      "fix_hint": "Delay this dubbed line by ~0.61s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "स्तन होता सभी के पास है सब छुपा के रखते है",
+        "dubbed_text": "Todos tienen senos, todos los esconden",
+        "evidence": {
+          "onset_delta": -0.61,
+          "orig_start": 159.14,
+          "orig_end": 164.61,
+          "dub_start": 158.53,
+          "dub_end": 161.66,
+          "coverage": 0.42,
+          "line_index": 39
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 5,
+          "max_face_area": 0.0276,
+          "mouth_activity": 0.0114,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I040",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "major",
+      "confidence": 0.95,
+      "t0": 161.66,
+      "t1": 164.61,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 2.94s before the original line ends (actor still speaking, no voice). No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Slow this line down or extend translation to fill ~2.94s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "स्तन होता सभी के पास है सब छुपा के रखते है",
+        "dubbed_text": "Todos tienen senos, todos los esconden",
+        "evidence": {
+          "orig_start": 159.14,
+          "orig_end": 164.61,
+          "dub_start": 158.53,
+          "dub_end": 161.66,
+          "coverage": 0.42,
+          "line_index": 39
+        },
+        "visual": {
+          "frames_analyzed": 24,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I041",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "major",
+      "confidence": 0.8,
+      "t0": 165.51,
+      "t1": 169.09,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub shifts from 'nobody' to 'nobody gives them to you', changing the focus and meaning.",
+      "fix_hint": "Keep the original meaning: 'Nadie tiene.'",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "कोई नहीं",
+        "dubbed_text": "Pero nadie te los da",
+        "evidence": {
+          "line_index": 40
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I042",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "critical",
+      "confidence": 0.98,
+      "t0": 167.33,
+      "t1": 169.09,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 1.76s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~1.76s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "कोई नहीं",
+        "dubbed_text": "Pero nadie te los da",
+        "evidence": {
+          "orig_start": 165.51,
+          "orig_end": 169.09,
+          "dub_start": 165.92,
+          "dub_end": 167.33,
+          "coverage": 0.39,
+          "line_index": 40
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 14,
+          "max_face_area": 0.0533,
+          "mouth_activity": 0.0564,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I043",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.69,
+      "t0": 170.66,
+      "t1": 171.52,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.86s before the original actor speaks.",
+      "fix_hint": "Delay this dubbed line by ~0.86s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "अपना स्तर्न",
+        "dubbed_text": "¿Qué vulgar es este tipo? Usted puso su seno en manos de este hombre",
+        "evidence": {
+          "onset_delta": -0.86,
+          "orig_start": 171.52,
+          "orig_end": 174.14,
+          "dub_start": 170.66,
+          "dub_end": 175.84,
+          "coverage": 0.92,
+          "line_index": 41
+        },
+        "visual": {
+          "frames_analyzed": 7,
+          "face_frames": 7,
+          "max_face_area": 0.031,
+          "mouth_activity": 0.0197,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I044",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "critical",
+      "confidence": 0.9,
+      "t0": 171.52,
+      "t1": 175.84,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub incorrectly translates 'stern' as 'seno' and adds 'violator' without justification from the original.",
+      "fix_hint": "Correctly translate 'stern' as 'pecho' and avoid adding 'violator' unless explicitly stated in the original.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "अपना स्तर्न",
+        "dubbed_text": "¿Qué vulgar es este tipo? Usted puso su seno en manos de este hombre",
+        "evidence": {
+          "line_index": 41
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I045",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "minor",
+      "confidence": 0.82,
+      "t0": 174.14,
+      "t1": 175.84,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.70s after the original line ended and runs into the next line. No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Speed up or shorten the translation by ~1.70s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "अपना स्तर्न",
+        "dubbed_text": "¿Qué vulgar es este tipo? Usted puso su seno en manos de este hombre",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 171.52,
+          "orig_end": 174.14,
+          "dub_start": 170.66,
+          "dub_end": 175.84,
+          "coverage": 0.92,
+          "line_index": 41
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I046",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "minor",
+      "confidence": 0.95,
+      "t0": 174.63,
+      "t1": 176.32,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 1.70s after the original actor begins speaking. No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Shift this dubbed line earlier by ~1.70s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "बलातकरी पुरुष के हाथ में दिया है। के हाथ में दिया है।",
+        "dubbed_text": "este hombre violador. Ahora fíjese, mire cómo lo usa.",
+        "evidence": {
+          "onset_delta": 1.7,
+          "orig_start": 174.63,
+          "orig_end": 178.27,
+          "dub_start": 176.32,
+          "dub_end": 179.97,
+          "coverage": 0.87,
+          "line_index": 42
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I047",
+      "evaluator": "dubbing",
+      "category": "SCRIPT_DEVIATION",
+      "severity": "major",
+      "confidence": 0.85,
+      "t0": 174.63,
+      "t1": 179.97,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The script shows a different line than what is spoken in the dub, indicating inconsistency between dialogue and subtitles.",
+      "fix_hint": "Align the dub speech with the script: '[Chatur] Usted puso su seno en manos de este hombre violador. Ahora fíjese: ¡mire cómo lo usa!'",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "बलातकरी पुरुष के हाथ में दिया है। के हाथ में दिया है।",
+        "dubbed_text": "este hombre violador. Ahora fíjese, mire cómo lo usa.",
+        "evidence": {
+          "line_index": 42
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I048",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "major",
+      "confidence": 0.82,
+      "t0": 178.27,
+      "t1": 179.97,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.70s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~1.70s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "बलातकरी पुरुष के हाथ में दिया है। के हाथ में दिया है।",
+        "dubbed_text": "este hombre violador. Ahora fíjese, mire cómo lo usa.",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 174.63,
+          "orig_end": 178.27,
+          "dub_start": 176.32,
+          "dub_end": 179.97,
+          "coverage": 0.87,
+          "line_index": 42
+        },
+        "visual": {
+          "frames_analyzed": 14,
+          "face_frames": 14,
+          "max_face_area": 0.0566,
+          "mouth_activity": 0.0694,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I049",
+      "evaluator": "dubbing",
+      "category": "MISSING_CONTENT",
+      "severity": "major",
+      "confidence": 0.95,
+      "t0": 180.64,
+      "t1": 181.6,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub audio is completely silent, omitting Chatur's spoken line that is present in both the original audio and the script.",
+      "fix_hint": "Insert the dub line for Chatur ('Ahora fíjese: ¡mire cómo lo usa!') into this time window.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "अब देखिए और देखिये",
+        "dubbed_text": null,
+        "evidence": {
+          "line_index": 43
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I050",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "major",
+      "confidence": 0.98,
+      "t0": 180.64,
+      "t1": 181.6,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 1.0s has only 0% dubbed speech under it. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "अब देखिए और देखिये",
+        "dubbed_text": null,
+        "evidence": {
+          "orig_start": 180.64,
+          "orig_end": 181.6,
+          "dub_start": null,
+          "dub_end": null,
+          "coverage": 0.0,
+          "line_index": 43
+        },
+        "visual": {
+          "frames_analyzed": 8,
+          "face_frames": 8,
+          "max_face_area": 0.0286,
+          "mouth_activity": 0.0456,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I051",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "major",
+      "confidence": 0.95,
+      "t0": 182.15,
+      "t1": 191.07,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub features Minister Tripathi's insult instead of dubbing Chatur's concluding clause, completely replacing the character's line.",
+      "fix_hint": "Dub Chatur's line concluding the sentence before or alongside Minister Tripathi's shout, as indicated in the script.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "कैसा इस पुरुष कैसा इसका उपयोग करता है।",
+        "dubbed_text": "¡Sahastrabudhe no tiene cerebro!",
+        "evidence": {
+          "line_index": 44
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I052",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "critical",
+      "confidence": 0.77,
+      "t0": 182.15,
+      "t1": 191.07,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 8.9s has only 23% dubbed speech under it. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "कैसा इस पुरुष कैसा इसका उपयोग करता है।",
+        "dubbed_text": "¡Sahastrabudhe no tiene cerebro!",
+        "evidence": {
+          "orig_start": 182.15,
+          "orig_end": 191.07,
+          "dub_start": 184.96,
+          "dub_end": 187.04,
+          "coverage": 0.23,
+          "line_index": 44
+        },
+        "visual": {
+          "frames_analyzed": 32,
+          "face_frames": 31,
+          "max_face_area": 0.0338,
+          "mouth_activity": 0.0513,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I053",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "critical",
+      "confidence": 0.9,
+      "t0": 207.84,
+      "t1": 210.24,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 2.40s before the original actor speaks.",
+      "fix_hint": "Delay this dubbed line by ~2.40s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "पादम थुचुक थुचुक।",
+        "dubbed_text": "¡Pedo! ¡Es silenciador! El pedo mediano es tolerable. ¡Tolerable! ¡Tolerable!",
+        "evidence": {
+          "onset_delta": -2.4,
+          "orig_start": 210.24,
+          "orig_end": 211.97,
+          "dub_start": 207.84,
+          "dub_end": 214.01,
+          "coverage": 0.85,
+          "line_index": 46
+        },
+        "visual": {
+          "frames_analyzed": 19,
+          "face_frames": 19,
+          "max_face_area": 0.0848,
+          "mouth_activity": 0.0433,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I054",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 211.97,
+      "t1": 214.01,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 2.05s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~2.05s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "पादम थुचुक थुचुक।",
+        "dubbed_text": "¡Pedo! ¡Es silenciador! El pedo mediano es tolerable. ¡Tolerable! ¡Tolerable!",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 210.24,
+          "orig_end": 211.97,
+          "dub_start": 207.84,
+          "dub_end": 214.01,
+          "coverage": 0.85,
+          "line_index": 46
+        },
+        "visual": {
+          "frames_analyzed": 16,
+          "face_frames": 16,
+          "max_face_area": 0.0598,
+          "mouth_activity": 0.041,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I055",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "major",
+      "confidence": 0.7,
+      "t0": 216.67,
+      "t1": 217.89,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.22s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~1.22s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "कनिष्टम",
+        "dubbed_text": "Pero el más pequeño, silencioso",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 215.78,
+          "orig_end": 216.67,
+          "dub_start": 215.52,
+          "dub_end": 217.89,
+          "coverage": 1.0,
+          "line_index": 47
+        },
+        "visual": {
+          "frames_analyzed": 10,
+          "face_frames": 10,
+          "max_face_area": 0.0272,
+          "mouth_activity": 0.0231,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I056",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "major",
+      "confidence": 0.89,
+      "t0": 217.35,
+      "t1": 218.21,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.86s after the original actor begins speaking. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Shift this dubbed line earlier by ~0.86s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "थुर्थुडी अपादम।",
+        "dubbed_text": "y sutil es mortal y letal.",
+        "evidence": {
+          "onset_delta": 0.86,
+          "orig_start": 217.35,
+          "orig_end": 221.09,
+          "dub_start": 218.21,
+          "dub_end": 220.8,
+          "coverage": 0.84,
+          "line_index": 48
+        },
+        "visual": {
+          "frames_analyzed": 7,
+          "face_frames": 7,
+          "max_face_area": 0.0271,
+          "mouth_activity": 0.0274,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I057",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 222.15,
+      "t1": 223.45,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 1.3s has only 0% dubbed speech under it.",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "सुर्सुली",
+        "dubbed_text": null,
+        "evidence": {
+          "orig_start": 222.15,
+          "orig_end": 223.45,
+          "dub_start": null,
+          "dub_end": null,
+          "coverage": 0.0,
+          "line_index": 49
+        },
+        "visual": {
+          "frames_analyzed": 10,
+          "face_frames": 9,
+          "max_face_area": 0.0308,
+          "mouth_activity": 0.0176,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I058",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "major",
+      "confidence": 0.9,
+      "t0": 224.99,
+      "t1": 226.88,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 1.9s has only 0% dubbed speech under it.",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": null,
+        "evidence": {
+          "orig_start": 224.99,
+          "orig_end": 226.88,
+          "dub_start": null,
+          "dub_end": null,
+          "coverage": 0.0,
+          "line_index": 50
+        },
+        "visual": {
+          "frames_analyzed": 15,
+          "face_frames": 2,
+          "max_face_area": 0.0281,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I059",
+      "evaluator": "dubbing",
+      "category": "MID_LINE_GAP",
+      "severity": "minor",
+      "confidence": 0.68,
+      "t0": 245.47,
+      "t1": 246.37,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "0.90s silence in the dub while the original actor is speaking.",
+      "fix_hint": "Re-time the segments around this pause or fill it with the missing phrase.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "संझे रट्टा मारेगा तो यहीं होगा रट्टा मारके तो गॉलेज के चार साल तो अपनी इजद बचा लेगा लेकिन लाइव के अगले 40 साल तेरा ब्रदकार होता रहे हैं अब",
+        "dubbed_text": "¡Dick! ¡Dick! ¡Dick! Si memorizas sin entender, esto es lo que pasa. Mira, mira. Memorizando salvas cuatro años de carrera. Los siguientes 40 te violarán. Violación.",
+        "evidence": {
+          "orig_start": 237.25,
+          "orig_end": 247.74,
+          "dub_start": 237.28,
+          "dub_end": 246.81,
+          "coverage": 0.76,
+          "line_index": 51
+        },
+        "visual": {
+          "frames_analyzed": 7,
+          "face_frames": 7,
+          "max_face_area": 0.0656,
+          "mouth_activity": 0.0085,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I060",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "major",
+      "confidence": 0.83,
+      "t0": 246.81,
+      "t1": 247.74,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 0.93s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~0.93s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "संझे रट्टा मारेगा तो यहीं होगा रट्टा मारके तो गॉलेज के चार साल तो अपनी इजद बचा लेगा लेकिन लाइव के अगले 40 साल तेरा ब्रदकार होता रहे हैं अब",
+        "dubbed_text": "¡Dick! ¡Dick! ¡Dick! Si memorizas sin entender, esto es lo que pasa. Mira, mira. Memorizando salvas cuatro años de carrera. Los siguientes 40 te violarán. Violación.",
+        "evidence": {
+          "orig_start": 237.25,
+          "orig_end": 247.74,
+          "dub_start": 237.28,
+          "dub_end": 246.81,
+          "coverage": 0.76,
+          "line_index": 51
+        },
+        "visual": {
+          "frames_analyzed": 7,
+          "face_frames": 7,
+          "max_face_area": 0.0612,
+          "mouth_activity": 0.0335,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I061",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.69,
+      "t0": 249.15,
+      "t1": 250.02,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.86s before the original actor speaks.",
+      "fix_hint": "Delay this dubbed line by ~0.86s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "तो यह इतना समझा समस्तन",
+        "dubbed_text": "Amigo, ¿ya te lo expliqué? No lo entiende.",
+        "evidence": {
+          "onset_delta": -0.86,
+          "orig_start": 250.02,
+          "orig_end": 251.58,
+          "dub_start": 249.15,
+          "dub_end": 251.29,
+          "coverage": 0.37,
+          "line_index": 52
+        },
+        "visual": {
+          "frames_analyzed": 7,
+          "face_frames": 7,
+          "max_face_area": 0.0389,
+          "mouth_activity": 0.0214,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I062",
+      "evaluator": "dubbing",
+      "category": "FAST_SPEECH",
+      "severity": "major",
+      "confidence": 0.55,
+      "t0": 266.47,
+      "t1": 267.36,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub speaks 23.5 chars/s vs a median of 11.2 (x2.1); likely time-squeezed.",
+      "fix_hint": "Use a shorter translation instead of speeding up the TTS.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "मज़ा है",
+        "dubbed_text": "ni idea ¿Pensan? Ni idea.",
+        "evidence": {
+          "chars_per_sec": 23.5,
+          "median_chars_per_sec": 11.2,
+          "line_index": 53
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I063",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "major",
+      "confidence": 0.85,
+      "t0": 266.72,
+      "t1": 267.49,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub conveys lack of knowledge ('No idea') instead of the original remark about something being fun or enjoyable.",
+      "fix_hint": "Change the dub line to reflect the reaction of finding the situation amusing or enjoyable.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "मज़ा है",
+        "dubbed_text": "ni idea ¿Pensan? Ni idea.",
+        "evidence": {
+          "line_index": 53
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I064",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "critical",
+      "confidence": 0.72,
+      "t0": 268.45,
+      "t1": 273.37,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 4.9s has only 18% dubbed speech under it.",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "बिचले कोई आईडिया नहीं रहा है यू स्वाइन",
+        "dubbed_text": "cerdos Cerdos. ¿Qué",
+        "evidence": {
+          "orig_start": 268.45,
+          "orig_end": 273.37,
+          "dub_start": 271.68,
+          "dub_end": 272.38,
+          "coverage": 0.18,
+          "line_index": 54
+        },
+        "visual": {
+          "frames_analyzed": 32,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I065",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.63,
+      "t0": 273.22,
+      "t1": 273.92,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.70s before the original actor speaks. No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Delay this dubbed line by ~0.70s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "मैंने तुम्हारे क्या बिगड़े है",
+        "dubbed_text": "¿Qué te he hecho yo? Oye.",
+        "evidence": {
+          "onset_delta": -0.7,
+          "orig_start": 273.92,
+          "orig_end": 275.81,
+          "dub_start": 273.22,
+          "dub_end": 275.1,
+          "coverage": 0.38,
+          "line_index": 55
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I066",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "major",
+      "confidence": 0.78,
+      "t0": 275.1,
+      "t1": 275.81,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 0.70s before the original line ends (actor still speaking, no voice). A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Slow this line down or extend translation to fill ~0.70s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "मैंने तुम्हारे क्या बिगड़े है",
+        "dubbed_text": "¿Qué te he hecho yo? Oye.",
+        "evidence": {
+          "orig_start": 273.92,
+          "orig_end": 275.81,
+          "dub_start": 273.22,
+          "dub_end": 275.1,
+          "coverage": 0.38,
+          "line_index": 55
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 5,
+          "max_face_area": 0.0388,
+          "mouth_activity": 0.0304,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I067",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "minor",
+      "confidence": 0.85,
+      "t0": 278.69,
+      "t1": 282.08,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Translating 'don't take it personally' as 'no te enojes' ('don't get angry') leaves Chatur's retort 'Sí me lo tomaré' ('Yes, I will take it') without its necessary complement.",
+      "fix_hint": "Change Rancho's line to 'no te lo tomes personal' so that Chatur's retort 'Sí me lo tomaré' makes grammatical and semantic sense.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "यार परस्टनली मत ले यार परस्टनली लूँगा",
+        "dubbed_text": "Amigo, no te enojes. Sí, Melo Tomar.",
+        "evidence": {
+          "line_index": 56
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I068",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "minor",
+      "confidence": 0.72,
+      "t0": 281.18,
+      "t1": 282.08,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 0.90s before the original line ends (actor still speaking, no voice).",
+      "fix_hint": "Slow this line down or extend translation to fill ~0.90s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "यार परस्टनली मत ले यार परस्टनली लूँगा",
+        "dubbed_text": "Amigo, no te enojes. Sí, Melo Tomar.",
+        "evidence": {
+          "orig_start": 278.69,
+          "orig_end": 282.08,
+          "dub_start": 278.72,
+          "dub_end": 281.18,
+          "coverage": 0.56,
+          "line_index": 56
+        },
+        "visual": {
+          "frames_analyzed": 7,
+          "face_frames": 3,
+          "max_face_area": 0.0311,
+          "mouth_activity": 0.0135,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I069",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "minor",
+      "confidence": 0.8,
+      "t0": 294.62,
+      "t1": 295.81,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 1.18s before the original line ends (actor still speaking, no voice). No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Slow this line down or extend translation to fill ~1.18s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "सेकंड अव माइ लाइव या छोड़ना यार एक्चुली अब क्या हम लोग राजो को डेमो दे रहे थे कि रखता",
+        "dubbed_text": "Cada segundo de mi vida. Déjalo, amigo. En realidad, solo mostrábamos a Rayu que no me murís Que entienda",
+        "evidence": {
+          "orig_start": 288.32,
+          "orig_end": 295.81,
+          "dub_start": 288.29,
+          "dub_end": 294.62,
+          "coverage": 0.75,
+          "line_index": 59
+        },
+        "visual": {
+          "frames_analyzed": 10,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I070",
+      "evaluator": "dubbing",
+      "category": "EARLY_START",
+      "severity": "minor",
+      "confidence": 0.66,
+      "t0": 295.46,
+      "t1": 296.23,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.77s before the original actor speaks. No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Delay this dubbed line by ~0.77s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "नहीं",
+        "dubbed_text": "Que entienda y disfrute la ciencia",
+        "evidence": {
+          "onset_delta": -0.77,
+          "orig_start": 296.23,
+          "orig_end": 297.05,
+          "dub_start": 295.46,
+          "dub_end": 296.73,
+          "coverage": 0.62,
+          "line_index": 60
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I071",
+      "evaluator": "dubbing",
+      "category": "FAST_SPEECH",
+      "severity": "major",
+      "confidence": 0.55,
+      "t0": 295.46,
+      "t1": 296.73,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub speaks 22.7 chars/s vs a median of 11.2 (x2.0); likely time-squeezed.",
+      "fix_hint": "Use a shorter translation instead of speeding up the TTS.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "नहीं",
+        "dubbed_text": "Que entienda y disfrute la ciencia",
+        "evidence": {
+          "chars_per_sec": 22.7,
+          "median_chars_per_sec": 11.2,
+          "line_index": 60
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I072",
+      "evaluator": "dubbing",
+      "category": "LATE_START",
+      "severity": "minor",
+      "confidence": 0.7,
+      "t0": 297.41,
+      "t1": 298.02,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub starts 0.61s after the original actor begins speaking. No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Shift this dubbed line earlier by ~0.61s (or trim leading silence).",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "आया हूं तो इस पर करने आया है",
+        "dubbed_text": "Yo no vine aquí a divertirme ¿Viniste a profanar el honor? ¿A violar la ciencia?",
+        "evidence": {
+          "onset_delta": 0.61,
+          "orig_start": 297.41,
+          "orig_end": 305.37,
+          "dub_start": 298.02,
+          "dub_end": 304.73,
+          "coverage": 0.64,
+          "line_index": 61
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I073",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "minor",
+      "confidence": 0.67,
+      "t0": 306.53,
+      "t1": 307.61,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.09s after the original line ended and runs into the next line.",
+      "fix_hint": "Speed up or shorten the translation by ~1.09s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": null,
+        "dubbed_text": "Rians, rians de mis métodos",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 305.86,
+          "orig_end": 306.53,
+          "dub_start": 305.44,
+          "dub_end": 307.61,
+          "coverage": 1.0,
+          "line_index": 62
+        },
+        "visual": {
+          "frames_analyzed": 9,
+          "face_frames": 6,
+          "max_face_area": 0.0301,
+          "mouth_activity": 0.028,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I074",
+      "evaluator": "dubbing",
+      "category": "ADDED_CONTENT",
+      "severity": "major",
+      "confidence": 0.95,
+      "t0": 324.03,
+      "t1": 330.94,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "The dub adds an entire sentence spoken by Chatur ('Esos ideales no funcionan en el mundo real, musaraña') that is not present in the original Hindi.",
+      "fix_hint": "Remove the added dialogue 'Esos ideales no funcionan en el mundo real, musaraña'.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "तना अच्छा इंजनेर बन के ये सक्सेस तेरी पीछे भाग यार तेरी",
+        "dubbed_text": "Eh, vuelve gran ingeniero Que el éxito te persiga Esos ideales no funcionan en el mundo real Musaraña",
+        "evidence": {
+          "line_index": 67
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I075",
+      "evaluator": "dubbing",
+      "category": "MEANING_MISMATCH",
+      "severity": "minor",
+      "confidence": 0.85,
+      "t0": 340.83,
+      "t1": 342.94,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "'आज ही के दिन' specifies returning on the exact same calendar date/anniversary, whereas 'Ese día' simply means 'that day'.",
+      "fix_hint": "Change 'Ese día' to 'Este mismo día' or 'En esta misma fecha' to preserve the reference to the exact anniversary date.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "semantic",
+        "original_text": "आजी की दिन",
+        "dubbed_text": "Ese día sabremos Quién triunfó",
+        "evidence": {
+          "line_index": 71
+        },
+        "visual": null
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I076",
+      "evaluator": "dubbing",
+      "category": "OVERRUN",
+      "severity": "minor",
+      "confidence": 0.67,
+      "t0": 341.85,
+      "t1": 342.94,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub keeps talking 1.09s after the original line ended and runs into the next line. No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Speed up or shorten the translation by ~1.09s.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "आजी की दिन",
+        "dubbed_text": "Ese día sabremos Quién triunfó",
+        "evidence": {
+          "spills_into_next": true,
+          "orig_start": 340.83,
+          "orig_end": 341.85,
+          "dub_start": 340.67,
+          "dub_end": 342.94,
+          "coverage": 1.0,
+          "line_index": 71
+        },
+        "visual": {
+          "frames_analyzed": 9,
+          "face_frames": 0,
+          "max_face_area": 0.0,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I077",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "major",
+      "confidence": 0.82,
+      "t0": 344.41,
+      "t1": 345.69,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 1.28s before the original line ends (actor still speaking, no voice).",
+      "fix_hint": "Slow this line down or extend translation to fill ~1.28s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "कौन ज्यादा सक्सेसफर हूँ",
+        "dubbed_text": "Tú o yo",
+        "evidence": {
+          "orig_start": 343.46,
+          "orig_end": 345.69,
+          "dub_start": 343.55,
+          "dub_end": 344.41,
+          "coverage": 0.39,
+          "line_index": 73
+        },
+        "visual": {
+          "frames_analyzed": 10,
+          "face_frames": 7,
+          "max_face_area": 0.0676,
+          "mouth_activity": 0.0115,
+          "speaking_likely": false
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I078",
+      "evaluator": "dubbing",
+      "category": "MISSING_DUB",
+      "severity": "major",
+      "confidence": 0.98,
+      "t0": 350.63,
+      "t1": 351.81,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Original speech of 1.2s has only 0% dubbed speech under it. A visible face is moving its mouth during this window (lip-sync break).",
+      "fix_hint": "Generate/insert the dubbed line for this window; it was dropped or placed elsewhere.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "हिम्मत",
+        "dubbed_text": null,
+        "evidence": {
+          "orig_start": 350.63,
+          "orig_end": 351.81,
+          "dub_start": null,
+          "dub_end": null,
+          "coverage": 0.0,
+          "line_index": 76
+        },
+        "visual": {
+          "frames_analyzed": 9,
+          "face_frames": 8,
+          "max_face_area": 0.0681,
+          "mouth_activity": 0.0469,
+          "speaking_likely": true
+        }
+      }
+    },
+    {
+      "id": "dubbing:hi->es:I079",
+      "evaluator": "dubbing",
+      "category": "EARLY_CUTOFF",
+      "severity": "minor",
+      "confidence": 0.69,
+      "t0": 353.31,
+      "t1": 354.08,
+      "track": "hi->es",
+      "shot_id": null,
+      "description": "Dub ends 0.77s before the original line ends (actor still speaking, no voice). No clear face on screen (likely off-screen speaker), so less visible.",
+      "fix_hint": "Slow this line down or extend translation to fill ~0.77s more.",
+      "suggested_prompt_patch": null,
+      "regenerate_scope": "segment",
+      "evidence": [],
+      "details": {
+        "source": "timing",
+        "original_text": "बेट बोल",
+        "dubbed_text": "¡Apostamos!",
+        "evidence": {
+          "orig_start": 352.64,
+          "orig_end": 354.08,
+          "dub_start": 352.48,
+          "dub_end": 353.31,
+          "coverage": 0.47,
+          "line_index": 77
+        },
+        "visual": {
+          "frames_analyzed": 6,
+          "face_frames": 1,
+          "max_face_area": 0.0569,
+          "mouth_activity": 0.0,
+          "speaking_likely": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "hi->es": {
+      "duration": 356.29,
+      "orig_speech_seconds": 239.6,
+      "dub_speech_seconds": 187.6,
+      "speech_overlap_ratio": 0.659,
+      "unmatched_dub_ratio": 0.158,
+      "median_onset_delta": -0.144,
+      "p90_abs_onset_delta": 0.864,
+      "background_offset_ms": -30.0,
+      "issue_counts": {
+        "MISSING_DUB": 10,
+        "MISSING_CONTENT": 5,
+        "OVERRUN": 12,
+        "EARLY_CUTOFF": 15,
+        "LATE_START": 8,
+        "BACKGROUND_DROPOUT": 2,
+        "EARLY_START": 9,
+        "ENERGY_MISMATCH": 1,
+        "MID_LINE_GAP": 2,
+        "MEANING_MISMATCH": 9,
+        "SYNC_DRIFT": 1,
+        "UNMATCHED_SPEECH": 1,
+        "SCRIPT_DEVIATION": 1,
+        "FAST_SPEECH": 2,
+        "ADDED_CONTENT": 1
+      },
+      "severity_counts": {
+        "critical": 18,
+        "major": 35,
+        "minor": 26
+      },
+      "score": 12.4
+    }
+  },
+  "artifacts": {
+    "hi->es": "reviews/rerun-es-v1/dubbing/hi->es.json"
+  },
+  "warnings": [],
+  "timings": {
+    "stems": 0.3,
+    "vad_align": 1.41,
+    "asr": 0.0,
+    "detect": 2.13,
+    "judge": 504.37,
+    "visual": 51.45
+  }
+}

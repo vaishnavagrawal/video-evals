@@ -1,0 +1,6 @@
+# Postgres with the init script baked in, instead of bind-mounting a repo file. A relative bind mount of a file from
+# the git checkout only exists on the host when Coolify's "Preserve Repository During Deployment" is on, and
+# Docker would silently create a directory in its place otherwise. A build context is always available.
+# Pinned (not the floating pg16 tag) so a redeploy cannot swap the database engine version underneath the volume.
+FROM pgvector/pgvector:0.8.7-pg16
+COPY init-db.sql /docker-entrypoint-initdb.d/01-init.sql

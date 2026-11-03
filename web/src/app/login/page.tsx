@@ -1,5 +1,14 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
+import { isSignUpAllowed } from "@/lib/auth";
 import { LoginForm } from "./login-form";
+
+async function LoginPanel() {
+  // Wait for the request so ALLOW_SIGNUP is read at runtime. Without this the page is prerendered at build time
+  // and the flag would be frozen to whatever the build environment had.
+  await connection();
+  return <LoginForm signUpAllowed={isSignUpAllowed()} />;
+}
 
 export default function LoginPage() {
   return (
@@ -8,7 +17,7 @@ export default function LoginPage() {
         <h1 className="text-center text-[20px] font-semibold mb-1">vreview</h1>
         <p className="text-center text-fg-muted mb-5">Review dubbed video like code</p>
         <Suspense>
-          <LoginForm />
+          <LoginPanel />
         </Suspense>
       </div>
     </div>

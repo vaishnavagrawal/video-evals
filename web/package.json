@@ -9,7 +9,9 @@
     "start": "next start -p 53000",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "auth:migrate": "dotenv -e .env.local -- auth migrate --config src/lib/auth.ts --yes",
+    "auth:migrate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/migrate.mjs",
+    "user:create": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/user.mjs create",
+    "user:set-password": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/user.mjs set-password",
     "screenshots": "node scripts/screenshots.mjs",
     "verify:auth": "node scripts/verify-auth.mjs"
   },

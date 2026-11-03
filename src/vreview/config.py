@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     r2_secret_access_key: str = ""
     r2_bucket: str = "vreview"
     presign_ttl_seconds: int = 900
+    max_upload_bytes: int = 2 * 1024**3                    # POST /v1/uploads rejects larger files with 413
 
     scratch_dir: Path = Path("/tmp/vreview")               # worker-local downloads, never authoritative
 
@@ -44,6 +45,9 @@ class Settings(BaseSettings):
     triage_llm_models: Annotated[list[str], NoDecode] = []
 
     webhook_secret: str = ""                               # HMAC-SHA256 key for outgoing webhooks
+    # Webhook URLs must be https and resolve to public addresses (vreview.webhook_guard). Set
+    # VREVIEW_WEBHOOK_ALLOW_HTTP=1 to also accept http:// (local development and tests only).
+    webhook_allow_http: bool = False
     public_base_url: str = "http://localhost:8000"
 
     @field_validator("cors_origins", "triage_llm_models", mode="before")

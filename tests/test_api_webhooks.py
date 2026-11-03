@@ -100,7 +100,9 @@ def webhook_receiver():
     server.server_close()
 
 
-def test_webhook_delivery_and_signature_verification(webhook_test_db, webhook_receiver, monkeypatch):
+def test_webhook_delivery_and_signature_verification(
+    webhook_test_db, webhook_receiver, allow_loopback_webhooks, monkeypatch
+):
     secret = "my_top_secret_key"
     monkeypatch.setenv("VREVIEW_DATABASE_URL", webhook_test_db)
     monkeypatch.setenv("VREVIEW_WEBHOOK_SECRET", secret)
@@ -146,7 +148,7 @@ def test_webhook_delivery_and_signature_verification(webhook_test_db, webhook_re
     assert hmac.compare_digest(received_sig, expected_sig)
 
 
-def test_webhook_retries_and_never_raises(webhook_test_db, monkeypatch):
+def test_webhook_retries_and_never_raises(webhook_test_db, allow_loopback_webhooks, monkeypatch):
     monkeypatch.setenv("VREVIEW_DATABASE_URL", webhook_test_db)
     monkeypatch.setenv("VREVIEW_WEBHOOK_SECRET", "secret")
     settings.cache_clear()
@@ -169,3 +171,72 @@ def test_webhook_retries_and_never_raises(webhook_test_db, monkeypatch):
         deliver(run_id)
         # Should have attempted 3 times (with 2 sleep intervals)
         assert mock_sleep.call_count == 2
+
+
+def test_webhook_to_a_private_address_is_not_sent_and_not_retried(webhook_test_db, monkeypatch):
+    """A URL stored before the guard existed (or whose DNS changed since) is refused at delivery time."""
+    monkeypatch.setenv("VREVIEW_DATABASE_URL", webhook_test_db)
+    monkeypatch.setenv("VREVIEW_WEBHOOK_SECRET", "secret")
+    settings.cache_clear()
+    get_engine.cache_clear()
+    get_sessionmaker.cache_clear()
+
+    run_id = "run_wh_private"
+    with get_sessionmaker()() as db:
+        repo.create_run(
+            db=db,
+            tenant="tenant_wh",
+            run_id=run_id,
+            brief={"kind": "dub"},
+            webhook_url="https://169.254.169.254/latest/meta-data",
+            status="succeeded",
+        )
+
+    with patch("time.sleep") as mock_sleep, patch("vreview.webhooks.httpx.Client") as mock_client:
+        deliver(run_id)  # never raises
+
+    mock_client.assert_not_called()
+    mock_sleep.assert_not_called()
+
+
+def test_webhook_redirect_is_not_followed_or_retried(webhook_test_db, allow_loopback_webhooks, monkeypatch):
+    monkeypatch.setenv("VREVIEW_DATABASE_URL", webhook_test_db)
+    settings.cache_clear()
+    get_engine.cache_clear()
+    get_sessionmaker.cache_clear()
+
+    hits: list[str] = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            hits.append(self.path)
+            self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            self.send_response(302)
+            self.send_header("Location", "http://127.0.0.1:9/internal")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        run_id = "run_wh_redirect"
+        with get_sessionmaker()() as db:
+            repo.create_run(
+                db=db,
+                tenant="tenant_wh",
+                run_id=run_id,
+                brief={"kind": "dub"},
+                webhook_url=f"http://127.0.0.1:{server.server_address[1]}/hook",
+                status="succeeded",
+            )
+        with patch("time.sleep") as mock_sleep:
+            deliver(run_id)
+    finally:
+        server.shutdown()
+        server.server_close()
+
+    assert hits == ["/hook"]
+    mock_sleep.assert_not_called()

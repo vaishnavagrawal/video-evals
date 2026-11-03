@@ -1062,3 +1062,151 @@ def test_env_example_auth_values_match_the_defaults(monkeypatch):
         "VREVIEW_AUTH_ISSUER": cfg.auth_issuer,
         "VREVIEW_AUTH_AUDIENCE": cfg.auth_audience,
     }
+
+
+# --- webhook_url validation at creation (SSRF guard) ----------------------------------------------------------------
+
+BAD_WEBHOOK_URLS = [
+    pytest.param("http://hooks.example.com/hook", "https", id="http"),
+    pytest.param("ftp://hooks.example.com/hook", "https", id="ftp"),
+    pytest.param("file:///etc/passwd", "https", id="file"),
+    pytest.param("https://127.0.0.1/hook", "public host", id="loopback"),
+    pytest.param("https://[::1]/hook", "public host", id="loopback-v6"),
+    pytest.param("https://localhost/hook", "public host", id="localhost"),
+    pytest.param("https://10.0.0.5/hook", "public host", id="private-10"),
+    pytest.param("https://172.16.3.4/hook", "public host", id="private-172"),
+    pytest.param("https://192.168.1.10/hook", "public host", id="private-192"),
+    pytest.param("https://169.254.169.254/latest/meta-data", "public host", id="link-local-metadata"),
+    pytest.param("https://[fe80::1]/hook", "public host", id="link-local-v6"),
+    pytest.param("https://224.0.0.1/hook", "public host", id="multicast"),
+    pytest.param("https://0.0.0.0/hook", "public host", id="unspecified"),
+    pytest.param("https://240.0.0.1/hook", "public host", id="reserved"),
+    pytest.param("https://[::ffff:127.0.0.1]/hook", "public host", id="v4-mapped-loopback"),
+    pytest.param("https://2130706433/hook", "public host", id="decimal-loopback"),
+    pytest.param("https://user:pw@93.184.216.34/hook", "credentials", id="credentials"),
+]
+
+
+def _create_review_with_webhook(client, headers, webhook_url: str):
+    up = client.post("/v1/uploads", json={"filename": "dub.mp4", "size": 1024}, headers=headers)
+    assert up.status_code == 201, up.text
+    return client.post(
+        "/v1/reviews",
+        json={
+            "assets": [{"asset_id": up.json()["asset_id"], "role": "candidate"}],
+            "brief": {"kind": "dub"},
+            "webhook_url": webhook_url,
+        },
+        headers=headers,
+    )
+
+
+def _run_count(tenant: str) -> int:
+    with get_sessionmaker()() as db:
+        return repo.list_runs(db, tenant)[1]
+
+
+@pytest.mark.parametrize("webhook_url, reason", BAD_WEBHOOK_URLS)
+def test_create_review_rejects_unsafe_webhook_urls_with_400(ed25519_server, webhook_url, reason):
+    h = _auth(ed25519_server, "tenant_wh_rest")
+    with TestClient(app) as client, patch(
+        "vreview.api.services.enqueue_review_workflow", new_callable=AsyncMock
+    ) as mock_enqueue:
+        resp = _create_review_with_webhook(client, h, webhook_url)
+    assert resp.status_code == 400, resp.text
+    assert reason in resp.json()["detail"]
+    assert not mock_enqueue.called
+    assert _run_count("tenant_wh_rest") == 0
+
+
+def test_create_review_rejects_a_name_that_resolves_to_a_private_address(ed25519_server, monkeypatch):
+    from vreview import webhook_guard
+
+    monkeypatch.setattr(webhook_guard, "_resolve_host", lambda host, port: ["172.18.0.9"])
+    h = _auth(ed25519_server, "tenant_wh_rest")
+    with TestClient(app) as client:
+        resp = _create_review_with_webhook(client, h, "https://minio:9000/vreview")
+    assert resp.status_code == 400
+    assert "public host" in resp.json()["detail"]
+    assert "172.18.0.9" not in resp.text
+
+
+def test_create_review_accepts_an_https_webhook_on_a_public_host(ed25519_server, monkeypatch):
+    from vreview import webhook_guard
+
+    monkeypatch.setattr(webhook_guard, "_resolve_host", lambda host, port: ["93.184.216.34"])
+    h = _auth(ed25519_server, "tenant_wh_rest_ok")
+    with TestClient(app) as client, patch(
+        "vreview.api.services.enqueue_review_workflow", new_callable=AsyncMock
+    ) as mock_enqueue:
+        mock_enqueue.return_value = "hatchet_wh_1"
+        resp = _create_review_with_webhook(client, h, "https://hooks.example.com/vreview?token=abc")
+    assert resp.status_code == 202, resp.text
+    assert _run_count("tenant_wh_rest_ok") == 1
+
+
+def test_create_review_without_a_webhook_url_is_unaffected(ed25519_server):
+    h = _auth(ed25519_server, "tenant_wh_none")
+    with TestClient(app) as client, patch(
+        "vreview.api.services.enqueue_review_workflow", new_callable=AsyncMock
+    ) as mock_enqueue:
+        mock_enqueue.return_value = "hatchet_wh_2"
+        up = client.post("/v1/uploads", json={"filename": "dub.mp4", "size": 1024}, headers=h)
+        resp = client.post(
+            "/v1/reviews",
+            json={"assets": [{"asset_id": up.json()["asset_id"], "role": "candidate"}], "brief": {"kind": "dub"}},
+            headers=h,
+        )
+    assert resp.status_code == 202
+
+
+def test_create_review_accepts_http_webhook_only_when_the_flag_is_set(ed25519_server, monkeypatch):
+    from vreview import webhook_guard
+
+    monkeypatch.setattr(webhook_guard, "_resolve_host", lambda host, port: ["93.184.216.34"])
+    h = _auth(ed25519_server, "tenant_wh_http")
+    with TestClient(app) as client, patch(
+        "vreview.api.services.enqueue_review_workflow", new_callable=AsyncMock
+    ) as mock_enqueue:
+        mock_enqueue.return_value = "hatchet_wh_3"
+        assert _create_review_with_webhook(client, h, "http://hooks.example.com/x").status_code == 400
+
+        monkeypatch.setenv("VREVIEW_WEBHOOK_ALLOW_HTTP", "1")
+        settings.cache_clear()
+        assert _create_review_with_webhook(client, h, "http://hooks.example.com/x").status_code == 202
+        # The flag lifts the scheme rule only.
+        assert _create_review_with_webhook(client, h, "http://127.0.0.1/x").status_code == 400
+
+
+# --- upload size cap ------------------------------------------------------------------------------------------------
+
+def test_upload_over_the_default_cap_is_413_and_nothing_is_created(ed25519_server):
+    from vreview.storage import get_store
+
+    h = _auth(ed25519_server, "tenant_cap")
+    two_gib = 2 * 1024**3
+    with TestClient(app) as client, patch.object(get_store(), "create_multipart") as create_multipart:
+        resp = client.post("/v1/uploads", json={"filename": "big.mp4", "size": two_gib + 1}, headers=h)
+        assert resp.status_code == 413, resp.text
+        assert str(two_gib) in resp.json()["detail"]
+        assert not create_multipart.called
+    with get_sessionmaker()() as db:
+        assert db.query(repo.MediaAssetRow).filter(repo.MediaAssetRow.tenant == "tenant_cap").count() == 0
+
+
+def test_upload_exactly_at_the_cap_is_accepted(ed25519_server, monkeypatch):
+    monkeypatch.setenv("VREVIEW_MAX_UPLOAD_BYTES", str(100 * 1024 * 1024))
+    settings.cache_clear()
+    h = _auth(ed25519_server, "tenant_cap")
+    with TestClient(app) as client:
+        ok = client.post("/v1/uploads", json={"filename": "ok.mp4", "size": 100 * 1024 * 1024}, headers=h)
+        too_big = client.post("/v1/uploads", json={"filename": "big.mp4", "size": 100 * 1024 * 1024 + 1}, headers=h)
+    assert ok.status_code == 201, ok.text
+    assert too_big.status_code == 413
+
+
+def test_max_upload_bytes_setting_defaults_to_2_gib_and_is_read_from_the_environment(monkeypatch):
+    monkeypatch.delenv("VREVIEW_MAX_UPLOAD_BYTES")
+    assert Settings(_env_file=None).max_upload_bytes == 2 * 1024**3
+    monkeypatch.setenv("VREVIEW_MAX_UPLOAD_BYTES", "12345")
+    assert Settings(_env_file=None).max_upload_bytes == 12345

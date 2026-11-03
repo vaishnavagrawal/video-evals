@@ -1,0 +1,30 @@
+# Build context for web/Dockerfile. Keep secrets, local state and dev-only files out of the image.
+.git
+node_modules
+.next
+out
+build
+coverage
+
+# Secrets and local config (all of .env*, including .env.local and .env.example)
+.env*
+
+# Local artifacts
+screenshots
+*.tsbuildinfo
+next-env.d.ts
+*.log
+.DS_Store
+.vercel
+
+# Not part of the image
+Dockerfile
+.dockerignore
+README.md
+AGENTS.md
+
+# Dev-only scripts (need playwright/jose, which are dev dependencies)
+scripts/screenshots.mjs
+scripts/real-checks.mjs
+scripts/real-api-check.mjs
+scripts/verify-auth.mjs

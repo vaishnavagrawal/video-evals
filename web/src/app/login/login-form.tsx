@@ -4,7 +4,7 @@ import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { ErrorBox, btn, cx } from "@/components/ui";
 
-export function LoginForm() {
+export function LoginForm({ signUpAllowed }: { signUpAllowed: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -34,23 +34,25 @@ export function LoginForm() {
 
   return (
     <form onSubmit={submit} className="rounded-md border border-line bg-canvas p-4 space-y-3">
-      <div role="tablist" aria-label="Account" className="grid grid-cols-2 gap-1 rounded-md bg-muted p-0.5 text-[13px]">
-        {(["signin", "signup"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            role="tab"
-            aria-selected={mode === m}
-            onClick={() => {
-              setMode(m);
-              setError(null);
-            }}
-            className={cx("h-7 rounded", mode === m ? "bg-canvas border border-line font-medium" : "text-fg-muted")}
-          >
-            {m === "signin" ? "Sign in" : "Create account"}
-          </button>
-        ))}
-      </div>
+      {signUpAllowed && (
+        <div role="tablist" aria-label="Account" className="grid grid-cols-2 gap-1 rounded-md bg-muted p-0.5 text-[13px]">
+          {(["signin", "signup"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => {
+                setMode(m);
+                setError(null);
+              }}
+              className={cx("h-7 rounded", mode === m ? "bg-canvas border border-line font-medium" : "text-fg-muted")}
+            >
+              {m === "signin" ? "Sign in" : "Create account"}
+            </button>
+          ))}
+        </div>
+      )}
       {mode === "signup" && (
         <label className="block">
           <span className="block text-[13px] font-medium mb-1">Name</span>
@@ -84,6 +86,9 @@ export function LoginForm() {
       <button type="submit" disabled={busy} className={cx(btn.base, btn.primary, "w-full")}>
         {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
       </button>
+      {!signUpAllowed && (
+        <p className="text-[13px] text-fg-muted">Sign-up is closed. Ask an administrator to create an account for you.</p>
+      )}
     </form>
   );
 }

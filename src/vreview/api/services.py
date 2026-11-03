@@ -1,12 +1,14 @@
 """Core service functions for vreview API and MCP tools."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 from typing import Any
 
 from fastapi import HTTPException, status
 
+from vreview.config import settings
 from vreview.db.models import (
     ASSET_ABORTED,
     ASSET_COMPLETED,
@@ -37,10 +39,12 @@ from vreview.media_types import UnsupportedMedia, content_type_for, kind_for, va
 from vreview.schema import Brief, MediaRole, Review
 from vreview.storage import get_store, review_key
 from vreview.triage import triage as run_triage
+from vreview.webhook_guard import WebhookURLError, resolve_webhook_target
 
 logger = logging.getLogger(__name__)
 
 PART_SIZE = 16 * 1024 * 1024  # 16 MiB
+WEBHOOK_VALIDATION_TIMEOUT_S = 10.0  # DNS lookup budget for a webhook_url check
 
 _ROLE_ORDER = {"candidate": 0, "original": 1, "reference": 2}
 
@@ -106,6 +110,20 @@ async def enqueue_review_workflow(review_input: ReviewInput, tenant: str) -> str
         return None
 
 
+async def validate_webhook_url(webhook_url: str) -> None:
+    """400 unless the webhook URL is https (or http when allowed) and its host resolves to public addresses only.
+    The sender checks again right before each delivery."""
+    try:
+        await asyncio.wait_for(asyncio.to_thread(resolve_webhook_target, webhook_url), WEBHOOK_VALIDATION_TIMEOUT_S)
+    except WebhookURLError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except asyncio.TimeoutError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="webhook_url host could not be resolved in time",
+        ) from exc
+
+
 def create_upload(
     tenant: str,
     filename: str,
@@ -115,6 +133,12 @@ def create_upload(
     project_id: str | None = None,
 ) -> dict[str, Any]:
     """Initiates multipart upload, creates asset record, and returns part presigned URLs."""
+    max_bytes = settings().max_upload_bytes
+    if size > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail=f"File is {size} bytes; the upload limit is {max_bytes} bytes",
+        )
     if not filename or filename in (".", "..") or any(c in filename for c in "/\\\x00"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="filename must be a plain file name")
     try:
@@ -235,11 +259,7 @@ async def create_review(
 ) -> dict[str, Any]:
     """Validates assets, creates queued run, and enqueues Hatchet review workflow."""
     if webhook_url:
-        if not webhook_url.startswith("https://"):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="webhook_url must use https protocol",
-            )
+        await validate_webhook_url(webhook_url)
 
     brief_obj = brief if isinstance(brief, Brief) else Brief(**brief)
     run_id = gen_id("run")

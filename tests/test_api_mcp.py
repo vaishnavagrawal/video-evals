@@ -299,3 +299,90 @@ async def test_mcp_tools_execution_and_isolation(mcp_ed25519_server):
             assert len(issues_data) == 1
             assert issues_data[0]["id"] == "issue_1"
             assert issues_data[0]["severity"] == "critical"
+
+
+MCP_BAD_WEBHOOK_URLS = [
+    "http://hooks.example.com/hook",
+    "https://127.0.0.1/hook",
+    "https://localhost/hook",
+    "https://10.0.0.5/hook",
+    "https://192.168.1.10/hook",
+    "https://169.254.169.254/latest/meta-data",
+    "https://[::1]/hook",
+    "https://[fe80::1]/hook",
+    "https://224.0.0.1/hook",
+    "https://0.0.0.0/hook",
+    "https://[::ffff:10.0.0.1]/hook",
+]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("webhook_url", MCP_BAD_WEBHOOK_URLS)
+async def test_mcp_review_video_rejects_unsafe_webhook_urls(mcp_ed25519_server, webhook_url):
+    tenant = f"tenant_mcp_wh_{uuid.uuid4().hex[:6]}"
+    token = generate_mcp_token(mcp_ed25519_server, tenant)
+    asset_id = f"ast_mcp_{uuid.uuid4().hex[:8]}"
+    with get_sessionmaker()() as db:
+        repo.create_media_asset(
+            db=db, tenant=tenant, filename="video.mp4", size=1024, upload_key=f"uploads/{asset_id}/video.mp4",
+            asset_id=asset_id,
+        )
+
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            with patch("vreview.api.services.enqueue_review_workflow", new_callable=AsyncMock) as mock_enqueue:
+                res = await client.post(
+                    "/mcp/",
+                    json={
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "review_video",
+                            "arguments": {"asset_ids": [asset_id], "webhook_url": webhook_url},
+                        },
+                    },
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+    assert res.status_code == 200
+    result = parse_mcp_response(res.text)["result"]
+    assert result["isError"] is True
+    assert not mock_enqueue.called
+    with get_sessionmaker()() as db:
+        assert repo.list_runs(db, tenant)[1] == 0
+
+
+@pytest.mark.anyio
+async def test_mcp_review_video_accepts_an_https_webhook_on_a_public_host(mcp_ed25519_server, monkeypatch):
+    from vreview import webhook_guard
+
+    monkeypatch.setattr(webhook_guard, "_resolve_host", lambda host, port: ["93.184.216.34"])
+    tenant = f"tenant_mcp_wh_{uuid.uuid4().hex[:6]}"
+    token = generate_mcp_token(mcp_ed25519_server, tenant)
+    asset_id = f"ast_mcp_{uuid.uuid4().hex[:8]}"
+    with get_sessionmaker()() as db:
+        repo.create_media_asset(
+            db=db, tenant=tenant, filename="video.mp4", size=1024, upload_key=f"uploads/{asset_id}/video.mp4",
+            asset_id=asset_id,
+        )
+
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            with patch("vreview.api.services.enqueue_review_workflow", new_callable=AsyncMock) as mock_enqueue:
+                mock_enqueue.return_value = "hatchet_mcp_wh"
+                res = await client.post(
+                    "/mcp/",
+                    json={
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "tools/call",
+                        "params": {
+                            "name": "review_video",
+                            "arguments": {"asset_ids": [asset_id], "webhook_url": "https://hooks.example.com/vreview"},
+                        },
+                    },
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+    result = parse_mcp_response(res.text)["result"]
+    assert not result.get("isError")
+    assert extract_tool_result(parse_mcp_response(res.text))["status"] == "queued"

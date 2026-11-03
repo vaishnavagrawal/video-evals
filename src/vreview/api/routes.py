@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from vreview.api.auth import get_current_tenant
 from vreview.api import services
-from vreview.schema import Brief, MediaRole
+from vreview.schema import Area, Brief, MediaRole, Priority
 
 router = APIRouter(prefix="/v1")
 
@@ -50,6 +50,11 @@ class CompleteUploadResponse(BaseModel):
     status: str = "completed"
 
 
+class AbortUploadResponse(BaseModel):
+    asset_id: str
+    status: str = "aborted"
+
+
 class AssetRoleInput(BaseModel):
     asset_id: str
     role: MediaRole = "candidate"
@@ -74,6 +79,13 @@ class CreateReviewResponse(BaseModel):
 class FeedbackRequest(BaseModel):
     verdict: Literal["accept", "false_positive", "comment"]
     comment: str | None = None
+
+
+class FeedbackItem(BaseModel):
+    issue_id: str
+    verdict: Literal["accept", "false_positive", "comment"]
+    comment: str | None = None
+    created_at: str
 
 
 @router.post("/uploads", response_model=CreateUploadResponse, status_code=status.HTTP_201_CREATED)
@@ -104,6 +116,14 @@ def complete_upload_endpoint(
         parts=parts,
         upload_id=req.upload_id,
     )
+
+
+@router.post("/uploads/{asset_id}/abort", response_model=AbortUploadResponse)
+def abort_upload_endpoint(
+    asset_id: str,
+    tenant: str = Depends(get_current_tenant),
+):
+    return services.abort_upload(tenant=tenant, asset_id=asset_id)
 
 
 @router.post("/reviews", response_model=CreateReviewResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -154,6 +174,9 @@ def get_issues_endpoint(
     severity: str | None = Query(default=None),
     category: str | None = Query(default=None),
     evaluator: str | None = Query(default=None),
+    priority: Priority | None = Query(default=None),
+    area: Area | None = Query(default=None),
+    thread_id: str | None = Query(default=None),
     tenant: str = Depends(get_current_tenant),
 ):
     return services.get_issues(
@@ -162,7 +185,19 @@ def get_issues_endpoint(
         severity=severity,
         category=category,
         evaluator=evaluator,
+        priority=priority,
+        area=area,
+        thread_id=thread_id,
     )
+
+
+@router.get("/reviews/{run_id}/media/{asset_id}")
+def get_media_endpoint(
+    run_id: str,
+    asset_id: str,
+    tenant: str = Depends(get_current_tenant),
+):
+    return services.get_media_url(tenant=tenant, run_id=run_id, asset_id=asset_id)
 
 
 @router.get("/reviews/{run_id}/artifacts/{name:path}")
@@ -177,6 +212,15 @@ def get_artifact_endpoint(
     if redirect or (accept and "text/html" in accept and "application/json" not in accept):
         return RedirectResponse(url=url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
     return {"url": url}
+
+
+@router.get("/reviews/{run_id}/feedback", response_model=list[FeedbackItem])
+def list_feedback_endpoint(
+    run_id: str,
+    latest: bool = Query(default=False),
+    tenant: str = Depends(get_current_tenant),
+):
+    return services.list_feedback(tenant=tenant, run_id=run_id, latest=latest)
 
 
 @router.post("/reviews/{run_id}/issues/{issue_id}/feedback")

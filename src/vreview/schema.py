@@ -16,6 +16,12 @@ Severity = Literal["critical", "major", "minor"]
 MediaRole = Literal["original", "candidate", "reference"]
 RegenerateScope = Literal["shot", "segment", "full"]
 
+# Triage vocabulary (rules live in vreview.triage).
+Priority = Literal["blocker", "should-fix", "needs-human", "nit"]
+Area = Literal["accuracy", "sync", "audio-mix", "delivery", "script", "language", "video", "other"]
+Verdict = Literal["request_changes", "needs_human", "approve"]
+TextSource = Literal["rule", "llm"]
+
 
 class MediaRef(BaseModel):
     """One input file. `key` is the content-addressed blob key once ingested (media/<sha256><ext>)."""
@@ -60,6 +66,12 @@ class Issue(BaseModel):
     evidence: list[Evidence] = Field(default_factory=list)
     details: dict = Field(default_factory=dict)          # evaluator-specific payload (texts, metrics)
 
+    # Set by vreview.triage; defaults keep reviews stored before triage existed parseable.
+    priority: Priority | None = None
+    tags: list[str] = Field(default_factory=list)
+    area: Area | None = None
+    thread_id: str | None = None
+
 
 class EvaluatorResult(BaseModel):
     evaluator: str
@@ -74,6 +86,39 @@ class EvaluatorResult(BaseModel):
     timings: dict[str, float] = Field(default_factory=dict)
 
 
+class Thread(BaseModel):
+    """One review comment: issues of a track that sit close together in time."""
+    id: str = Field(description="'T001', 'T002', ... in time order within the review; not stable across runs")
+    track: str | None = None
+    t0: float
+    t1: float
+    priority: Priority = Field(description="Highest member priority: blocker > should-fix > needs-human > nit")
+    areas: list[Area] = Field(default_factory=list, description="Primary issue's area first")
+    issue_ids: list[str] = Field(default_factory=list, description="Time order")
+    title: str
+    comment: str = Field(description="Markdown: what is wrong, why it matters, how to fix")
+    comment_source: TextSource = "rule"
+    comment_model: str | None = Field(default=None, description="Model that wrote title/comment when comment_source is 'llm'")
+    original_text: str | None = None
+    dubbed_text: str | None = None
+
+
+class Triage(BaseModel):
+    """Code-review style view of a review. Deterministic; only the prose may come from an LLM.
+
+    Every count here counts threads, not issues.
+    """
+    version: str = "1"
+    verdict: Verdict
+    counts: dict[str, int] = Field(default_factory=dict, description="Threads per priority; all four keys present")
+    area_counts: dict[str, int] = Field(default_factory=dict, description="Threads per area (a thread counts once for each of its areas); largest first")
+    threads: list[Thread] = Field(default_factory=list)
+    summary: str = ""
+    summary_source: TextSource = "rule"
+    summary_model: str | None = None
+    llm_warnings: list[str] = Field(default_factory=list)
+
+
 class Review(BaseModel):
     schema_version: str = SCHEMA_VERSION
     run_id: str
@@ -82,3 +127,4 @@ class Review(BaseModel):
     results: list[EvaluatorResult]
     score: float | None = Field(default=None, description="Min over evaluator scores")
     created_at: datetime
+    triage: Triage | None = None

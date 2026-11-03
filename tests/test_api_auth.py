@@ -185,3 +185,28 @@ def test_missing_sub_claim_fails(ed25519_auth_server, monkeypatch):
         resp = client.get("/v1/reviews", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 401
         assert "missing valid 'sub' claim" in resp.json()["detail"]
+
+
+def test_default_issuer_and_audience_accept_a_better_auth_token(ed25519_auth_server, monkeypatch):
+    """With nothing configured but the JWKS location, tokens must carry iss/aud = the web app's base URL."""
+    for var in ("VREVIEW_AUTH_ISSUER", "VREVIEW_AUTH_AUDIENCE", "VREVIEW_AUTH_JWKS_URL"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setattr(
+        "vreview.api.auth.settings",
+        lambda: Settings(_env_file=None, auth_jwks_url=ed25519_auth_server["jwks_url"]),
+    )
+    from vreview.api.auth import _get_jwk_client
+    _get_jwk_client.cache_clear()
+
+    web = "http://localhost:53000"
+    good = make_token(ed25519_auth_server, iss=web, aud=web)
+    wrong_iss = make_token(ed25519_auth_server, iss="https://auth.example.com", aud=web)
+    wrong_aud = make_token(ed25519_auth_server, iss=web, aud="vreview-api")
+
+    with TestClient(app) as client:
+        ok = client.get("/v1/reviews", headers={"Authorization": f"Bearer {good}"})
+        assert ok.status_code == 200
+        bad_iss = client.get("/v1/reviews", headers={"Authorization": f"Bearer {wrong_iss}"})
+        assert bad_iss.status_code == 401 and "Invalid issuer" in bad_iss.json()["detail"]
+        bad_aud = client.get("/v1/reviews", headers={"Authorization": f"Bearer {wrong_aud}"})
+        assert bad_aud.status_code == 401 and "Audience doesn't match" in bad_aud.json()["detail"]

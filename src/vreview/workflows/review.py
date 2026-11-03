@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -30,7 +31,8 @@ from vreview.hatchet import hatchet
 from vreview.jobs import ReviewInput
 from vreview.schema import EvaluatorResult, MediaRef, Review
 from vreview.storage import get_store
-from vreview.storage.base import review_key
+from vreview.storage.base import BlobStore, review_key
+from vreview.triage import triage
 
 
 def _stage(run_id: str, stage: str) -> None:
@@ -41,6 +43,10 @@ def _stage(run_id: str, stage: str) -> None:
 
 
 logger = logging.getLogger(__name__)
+
+# How long finalize waits for the LLM to write thread comments before it ships the rule-based text.
+# Kept well under finalize's execution timeout so a slow gateway can't fail the whole review.
+TRIAGE_LLM_TIMEOUT_S = 600.0
 
 
 # ---------------------------------------------------------------------------
@@ -358,14 +364,95 @@ def assemble_task(input: ReviewInput, ctx: Context) -> AssembleOutput:
     return AssembleOutput(results=[eval_res])
 
 
+def _triage_langs(review: Review) -> tuple[str | None, str | None]:
+    """Source and target language for the LLM prompt: the brief's if declared, else the single dub pair's."""
+    src = review.brief.source_language
+    targets = review.brief.target_languages
+    tgt = targets[0] if len(targets) == 1 else None
+    if src is None or tgt is None:
+        tracks = {i.track for r in review.results for i in r.issues if i.track}
+        if len(tracks) == 1 and "->" in (track := next(iter(tracks))):
+            pair_src, pair_tgt = track.split("->", 1)
+            src, tgt = src or pair_src, tgt or pair_tgt
+    return src, tgt
+
+
+def _merge_llm_text(tri, llm) -> None:
+    """Overlay LLM titles/comments/summary on the rule text; whatever the LLM did not return stays rule-based."""
+    llm = llm or {}
+    comments = llm.get("threads") or {}
+    for thread in tri.threads:
+        entry = comments.get(thread.id)
+        if not isinstance(entry, dict):
+            continue
+        title = str(entry.get("title") or "").strip()
+        comment = str(entry.get("comment") or "").strip()
+        if not (title or comment):
+            continue
+        if title:
+            thread.title = title
+        if comment:
+            thread.comment = comment
+        thread.comment_source = "llm"
+        thread.comment_model = str(entry["model"]) if entry.get("model") else None
+    summary = str(llm.get("summary") or "").strip()
+    if summary:
+        tri.summary = summary
+        tri.summary_source = "llm"
+        tri.summary_model = str(llm["summary_model"]) if llm.get("summary_model") else None
+    tri.llm_warnings.extend(str(w) for w in llm.get("warnings") or [])
+
+
+def _triage_review(review: Review, store: BlobStore) -> None:
+    """Rule triage, then (if VREVIEW_TRIAGE_LLM_MODELS is set) LLM-written comments. Best effort: any LLM
+    failure leaves the rule text in place and adds a warning."""
+    tri = triage(review)
+    review.triage = tri
+
+    models = settings().triage_llm_models
+    if not models:
+        return
+    try:
+        from vreview.triage_llm import write_comments
+    except ImportError as exc:
+        tri.llm_warnings.append(f"LLM comments unavailable: {exc}")
+        return
+
+    issues_by_id = {i.id: i for r in review.results for i in r.issues}
+    src_lang, tgt_lang = _triage_langs(review)
+    pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="triage-llm")
+    try:
+        future = pool.submit(
+            write_comments,
+            tri.threads,
+            issues_by_id,
+            src_lang=src_lang,
+            tgt_lang=tgt_lang,
+            models=list(models),
+            cache=store,
+            cache_prefix="cache/triage_llm",
+            verdict=tri.verdict,
+        )
+        llm = future.result(timeout=TRIAGE_LLM_TIMEOUT_S)
+    except TimeoutError:
+        tri.llm_warnings.append(f"LLM comments timed out after {TRIAGE_LLM_TIMEOUT_S:.0f}s; using rule-based text")
+    except Exception as exc:
+        logger.warning("LLM triage comments failed for run %s", review.run_id, exc_info=True)
+        tri.llm_warnings.append(f"LLM comments failed ({type(exc).__name__}: {' '.join(str(exc).split())[:200]})")
+    else:
+        _merge_llm_text(tri, llm)
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+
+
 @review_workflow.task(
     name="finalize",
     parents=[ingest_task, assemble_task],
-    execution_timeout=timedelta(minutes=5),
+    execution_timeout=timedelta(minutes=15),  # triage LLM wait (up to TRIAGE_LLM_TIMEOUT_S) + store + DB + webhook
     retries=3,
 )
 def finalize_task(input: ReviewInput, ctx: Context) -> Review:
-    """Stores review.json in blob store, updates DB via repo.save_review, and triggers webhook delivery."""
+    """Triages the review, stores review.json in blob store, updates DB via repo.save_review, and triggers webhook delivery."""
     from vreview.db import repo
     from vreview import webhooks
 
@@ -388,6 +475,8 @@ def finalize_task(input: ReviewInput, ctx: Context) -> Review:
     )
 
     store = get_store()
+    _triage_review(review, store)
+
     key = review_key(input.run_id, "review.json")
     store.put_bytes(key, review.model_dump_json(indent=2).encode("utf-8"), "application/json")
 

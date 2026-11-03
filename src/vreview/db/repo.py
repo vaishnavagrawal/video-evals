@@ -135,12 +135,20 @@ def create_media_asset(
     return asset
 
 
-def get_media_asset(db: Session, tenant: str, asset_id: str) -> MediaAssetRow | None:
+def get_media_asset(db: Session, tenant: str, asset_id: str, for_update: bool = False) -> MediaAssetRow | None:
+    """for_update locks the row until the session commits or closes, so complete and abort cannot interleave."""
     stmt = select(MediaAssetRow).where(
         MediaAssetRow.id == asset_id,
         MediaAssetRow.tenant == tenant,
     )
+    if for_update:
+        stmt = stmt.with_for_update()
     return db.scalars(stmt).first()
+
+
+def set_media_asset_status(db: Session, asset: MediaAssetRow, status: str) -> None:
+    asset.status = status
+    db.commit()
 
 
 def create_run(
@@ -152,6 +160,7 @@ def create_run(
     webhook_url: str | None = None,
     project_id: str | None = None,
     status: str = "queued",
+    media: list[dict[str, Any]] | None = None,
 ) -> RunRow:
     run = RunRow(
         id=run_id,
@@ -161,6 +170,7 @@ def create_run(
         webhook_url=webhook_url,
         brief=brief,
         evaluators=evaluators,
+        media=media,
     )
     db.add(run)
     db.commit()
@@ -266,3 +276,13 @@ def create_issue_feedback(
     db.commit()
     db.refresh(feedback)
     return feedback
+
+
+def list_issue_feedback(db: Session, tenant: str, run_id: str) -> list[IssueFeedbackRow]:
+    """All feedback rows for a run, oldest first."""
+    stmt = (
+        select(IssueFeedbackRow)
+        .where(IssueFeedbackRow.tenant == tenant, IssueFeedbackRow.run_id == run_id)
+        .order_by(IssueFeedbackRow.created_at, IssueFeedbackRow.id)
+    )
+    return list(db.scalars(stmt).all())

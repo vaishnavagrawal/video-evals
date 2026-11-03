@@ -57,6 +57,12 @@ class ProjectRow(Base):
     )
 
 
+# media_assets.status: a multipart upload is "uploading" until the browser completes or aborts it.
+ASSET_UPLOADING = "uploading"
+ASSET_COMPLETED = "completed"
+ASSET_ABORTED = "aborted"
+
+
 class MediaAssetRow(Base):
     __tablename__ = "media_assets"
 
@@ -69,6 +75,9 @@ class MediaAssetRow(Base):
     filename: Mapped[str] = mapped_column(String(512), nullable=False)
     upload_key: Mapped[str] = mapped_column(String(1024), nullable=False)
     upload_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(16), default=ASSET_UPLOADING, server_default=ASSET_UPLOADING, nullable=False
+    )
     sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
     media_key: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     size: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -94,6 +103,8 @@ class RunRow(Base):
     hatchet_run_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     brief: Mapped[dict[str, Any]] = mapped_column(JSONType, nullable=False)
     evaluators: Mapped[list[str] | None] = mapped_column(JSONType, nullable=True)
+    # Assets attached to the run: [{"asset_id", "role", "filename"}]. NULL for runs created before this column.
+    media: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONType, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False

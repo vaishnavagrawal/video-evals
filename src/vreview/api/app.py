@@ -4,9 +4,11 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from vreview.api.mcp import mcp_server
 from vreview.api.routes import router
+from vreview.config import settings
 
 mcp_app = mcp_server.http_app(path="/", stateless_http=True)
 
@@ -24,6 +26,15 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# The web app calls the API from the browser with a Bearer token (no cookies, so no credentials mode).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings().cors_origins,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+
 
 # Unauthenticated healthcheck
 @app.get("/healthz")

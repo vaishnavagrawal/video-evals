@@ -20,6 +20,9 @@ from .models import DubConfig, PairResult, TrackFeatures, TrackPlan, TrackRef
 
 
 def plan_tracks(store: BlobStore, media: list[MediaRef], cfg: DubConfig, scratch: Path) -> TrackPlan:
+    # Reference media (e.g. images) is stored with the review but dubbing never reads it. Dropping it here
+    # also keeps it out of the plan cache key, so attaching a reference doesn't invalidate the cached plan.
+    media = [m for m in media if m.role != "reference"]
     plan_cfg = {
         "src_lang": cfg.src_lang,
         "tgt_langs": sorted(cfg.tgt_langs),

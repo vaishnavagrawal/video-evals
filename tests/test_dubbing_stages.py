@@ -171,3 +171,35 @@ def test_dubbing_evaluator_contract_and_applies_to(tmp_path, sample_media_pair):
     assert result.status == "ok"
     assert result.score is not None
     assert len(result.artifacts) >= 1
+
+
+def test_reference_media_is_ignored_by_dubbing(tmp_path):
+    """A reference image rides along with the review but must not reach dubbing: the evaluator still applies
+    and the cached plan is found whether or not a reference is attached (no media is read on a cache hit)."""
+    import hashlib
+
+    from vreview.evaluators.dubbing.models import TrackPlan, TrackRef
+    from vreview.storage.base import cache_prefix
+
+    store = LocalStore(tmp_path / "store")
+    orig = MediaRef(asset_id="o", role="original", key="media/o.mp4", sha256="a" * 64, filename="o.mp4")
+    cand = MediaRef(asset_id="c", role="candidate", key="media/c.mp4", sha256="b" * 64, filename="c.mp4")
+    ref = MediaRef(asset_id="r", role="reference", key="media/r.png", sha256="c" * 64, filename="r.png")
+    brief = Brief(kind="dub", source_language="hi", target_languages=["es"])
+    cfg = DubConfig.from_brief(brief)
+
+    assert DubbingEvaluator().applies_to(brief, [orig, cand]) is None
+    assert DubbingEvaluator().applies_to(brief, [orig, cand, ref]) is None
+
+    plan_cfg = {"src_lang": cfg.src_lang, "tgt_langs": sorted(cfg.tgt_langs), "orig_audio": cfg.orig_audio,
+                "dub_audio": cfg.dub_audio, "asr_local_model": cfg.asr_local_model}
+    composite = hashlib.sha256(f"candidate:{cand.sha256},original:{orig.sha256}".encode()).hexdigest()
+    seeded = TrackPlan(
+        original=TrackRef(media=orig, audio_index=0, role="original", slug="a.a0", wav_key="w/o.wav"),
+        dubs=[TrackRef(media=cand, audio_index=0, role="dub", slug="b.a0", wav_key="w/c.wav")],
+    )
+    store.put_bytes(f"{cache_prefix(composite, 'plan', '1', plan_cfg)}/plan.json", seeded.model_dump_json().encode())
+
+    scratch = tmp_path / "scratch"
+    for media in ([orig, cand], [orig, ref, cand]):
+        assert plan_tracks(store, media, cfg, scratch) == seeded

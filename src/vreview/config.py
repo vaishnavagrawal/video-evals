@@ -6,9 +6,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -28,13 +29,29 @@ class Settings(BaseSettings):
 
     scratch_dir: Path = Path("/tmp/vreview")               # worker-local downloads, never authoritative
 
-    # better-auth issues JWTs; we verify them against its JWKS endpoint.
-    auth_jwks_url: str = "http://localhost:3000/api/auth/jwks"
-    auth_issuer: str | None = None
-    auth_audience: str | None = None
+    # better-auth (hosted by the web app on :53000) issues JWTs; we verify them against its JWKS endpoint.
+    # better-auth sets iss and aud to its base URL. Set VREVIEW_AUTH_ISSUER / VREVIEW_AUTH_AUDIENCE to an
+    # empty string to skip that check.
+    auth_jwks_url: str = "http://localhost:53000/api/auth/jwks"
+    auth_issuer: str | None = "http://localhost:53000"
+    auth_audience: str | None = "http://localhost:53000"
+
+    # Browser origins allowed to call the API (comma-separated in VREVIEW_CORS_ORIGINS).
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:53000"]
+
+    # LLM models that write review-thread comments and the summary (comma-separated in
+    # VREVIEW_TRIAGE_LLM_MODELS). Empty = rule-based text only.
+    triage_llm_models: Annotated[list[str], NoDecode] = []
 
     webhook_secret: str = ""                               # HMAC-SHA256 key for outgoing webhooks
     public_base_url: str = "http://localhost:8000"
+
+    @field_validator("cors_origins", "triage_llm_models", mode="before")
+    @classmethod
+    def _split_csv(cls, value):
+        if isinstance(value, str):
+            return [part.strip() for part in value.split(",") if part.strip()]
+        return value
 
 
 @lru_cache

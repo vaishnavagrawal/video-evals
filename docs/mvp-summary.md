@@ -63,6 +63,8 @@ Host ports: Postgres 55433 (55432 is taken by a Coolify Postgres on this machine
 
 ## Pending
 
+The current, maintained list is `docs/pending.md`. The text below is the original MVP-time list and is partly done (the web app, the Coolify deployment, the webhook check and the upload cap have since landed).
+
 Product (plan items 4-7):
 1. Next.js web app + better-auth: upload UI (presigned multipart), review player with issue timeline, feedback actions.
 2. GPU offload: move `track_features` (ASR, Demucs) to Modal. It only depends on its arguments, so it can move as is.

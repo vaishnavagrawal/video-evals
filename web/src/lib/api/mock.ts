@@ -12,6 +12,8 @@ import {
   type FeedbackRow,
   type MediaRef,
   type MediaUrl,
+  type Pipeline,
+  type PipelineNode,
   type PutPart,
   type Review,
   type ReviewListItem,
@@ -230,6 +232,233 @@ const mockPutPart: PutPart = (url, body, { onProgress, signal }) =>
 let seq = 0;
 const genId = (p: string) => `${p}_mock${Date.now().toString(36)}${(seq++).toString(36)}`;
 
+// --- Pipeline (GET /reviews/{id}/pipeline) ---------------------------------------------------------------------
+// Synthesized from the same run states as above, with the node ids, labels and detail keys the real worker emits
+// (src/vreview/workflows/review.py), so the pipeline view can be exercised without a backend.
+
+const ASR_MODEL = "groq/whisper-large-v3";
+const JUDGE_MODELS = ["meta:muse-spark-1.3", "gemini-flash"];
+
+interface MockChild {
+  node: string;
+  label: string;
+  /** Start and end as fractions of the parent's duration. */
+  from: number;
+  to: number;
+  detail: Record<string, unknown>;
+  /** Added once the child has finished. */
+  done?: Record<string, unknown>;
+  error?: string;
+}
+
+interface MockStep {
+  node: string;
+  label: string;
+  ms: number;
+  detail?: Record<string, unknown>;
+  /** Added once the step has finished. */
+  done?: Record<string, unknown>;
+  children?: MockChild[];
+  error?: string;
+}
+
+/** Steps of a dubbing review. `secs` are realistic durations for a ~1 minute clip; `cached` is a re-run. */
+function mockSteps(review: Review | null, opts: { cached?: boolean; avJudge?: boolean; secs?: number[] }): MockStep[] {
+  const cached = !!opts.cached;
+  const secs = opts.secs ?? (cached ? [5, 3, 4, 9, 2, 31] : [6, 14, 96, 142, 2, 26]);
+  const issues = review?.results.reduce((n, r) => n + r.issues.length, 0) ?? 42;
+  const score = review?.score != null ? Math.round(review.score * 10) / 10 : 71.3;
+  const tri = review?.triage;
+  const llm = tri?.summary_source === "llm";
+  const ms = (i: number) => secs[i] * 1000;
+  const steps: MockStep[] = [
+    { node: "ingest", label: "Ingest media", ms: ms(0), done: { files: review?.media.length ?? 3 } },
+    {
+      node: "dubbing_plan",
+      label: "Plan audio tracks",
+      ms: ms(1),
+      done: { tracks: 2, source: "hi", targets: ["es"] },
+    },
+    {
+      node: "dubbing_features",
+      label: "Extract speech features",
+      ms: ms(2),
+      detail: { model: ASR_MODEL },
+      done: { tracks: 2 },
+      children: [
+        {
+          node: "dubbing_features/3f9c1a7be2d40a15.a0",
+          label: "Original · hi",
+          from: 0.01,
+          to: cached ? 0.06 : 0.97,
+          detail: { lang: "hi", model: ASR_MODEL },
+          done: { cached },
+        },
+        {
+          node: "dubbing_features/b81d52c0e9a7f364.a0",
+          label: "Dub · es",
+          from: 0.01,
+          to: cached ? 0.05 : 0.64,
+          detail: { lang: "es", model: ASR_MODEL },
+          done: { cached },
+        },
+      ],
+    },
+    {
+      node: "dubbing_pairs",
+      label: "Evaluate dubbed tracks",
+      ms: ms(3),
+      detail: { models: JUDGE_MODELS, visual: true },
+      done: { pairs: 1, issues, score },
+      children: [
+        {
+          node: "dubbing_pairs/b81d52c0e9a7f364.a0",
+          label: "Compare hi → es",
+          from: 0.01,
+          to: 0.99,
+          detail: { pair: "hi → es", models: JUDGE_MODELS, visual: true },
+          done: { cached, score, issues },
+        },
+      ],
+    },
+    { node: "assemble", label: "Assemble results", ms: ms(4), done: { evaluators: ["dubbing"], issues, score } },
+  ];
+  if (opts.avJudge) {
+    // Not part of STAGES: shows that the view draws whatever nodes the server returns.
+    steps.push({
+      node: "av_judge",
+      label: "AV judge (video + audio)",
+      ms: 38_000,
+      detail: { model: JUDGE_MODELS[0] },
+      done: { issues: 4, cached },
+    });
+  }
+  steps.push({
+    node: "finalize",
+    label: "Triage & finalize",
+    ms: ms(5),
+    done: {
+      issues,
+      score,
+      verdict: tri?.verdict ?? "request_changes",
+      threads: tri?.threads.length ?? 12,
+      ...(llm ? { models: [tri?.summary_model ?? "mock-llm"] } : {}),
+    },
+  });
+  return steps;
+}
+
+/** Lays steps end to end from `startMs` and derives each node's status from `nowMs`. A step with `error` fails. */
+function mockTimeline(steps: MockStep[], startMs: number, nowMs: number): PipelineNode[] {
+  const iso = (t: number) => new Date(t).toISOString();
+  const out: PipelineNode[] = [];
+  const push = (n: {
+    node: string;
+    parent: string | null;
+    label: string;
+    start: number;
+    end: number;
+    detail: Record<string, unknown>;
+    done?: Record<string, unknown>;
+    error?: string;
+  }) => {
+    const finished = n.end <= nowMs;
+    const status = !finished ? "running" : n.error ? "failed" : "succeeded";
+    out.push({
+      node: n.node,
+      parent: n.parent,
+      label: n.label,
+      kind: n.parent ? "child" : "stage",
+      status,
+      started_at: iso(n.start),
+      finished_at: finished ? iso(n.end) : null,
+      duration_s: Math.round(((finished ? n.end : nowMs) - n.start)) / 1000,
+      detail: { ...n.detail, ...(finished && !n.error ? n.done : {}), ...(finished && n.error ? { error: n.error } : {}) },
+    });
+  };
+
+  let at = startMs;
+  for (const s of steps) {
+    if (at > nowMs) break;
+    const end = at + s.ms;
+    push({ node: s.node, parent: null, label: s.label, start: at, end, detail: s.detail ?? {}, done: s.done, error: s.error });
+    for (const c of s.children ?? []) {
+      const cs = at + c.from * s.ms;
+      if (cs > nowMs) continue;
+      push({
+        node: c.node,
+        parent: s.node,
+        label: c.label,
+        start: cs,
+        end: at + c.to * s.ms,
+        detail: c.detail,
+        done: c.done,
+        error: c.error,
+      });
+    }
+    if (s.error) break;
+    at = end;
+  }
+  return out;
+}
+
+function mockPipeline(run: ReviewRun): Pipeline {
+  const now = Date.now();
+  const created = new Date(run.created_at ?? now).getTime();
+  const wrap = (nodes: PipelineNode[], at = now): Pipeline => ({
+    run_id: run.run_id,
+    status: run.status,
+    stage: run.stage,
+    server_time: new Date(at).toISOString(),
+    nodes,
+  });
+
+  const stored = loadStored().find((s) => s.run_id === run.run_id);
+  if (stored) {
+    // Same clock as storedRun: stage i runs from created + (i + 1) * STAGE_MS for STAGE_MS.
+    const steps = mockSteps(run.review, { secs: STAGES.map(() => STAGE_MS / 1000) });
+    return wrap(mockTimeline(steps, created + STAGE_MS, now));
+  }
+
+  if (run.run_id === "run_mock_running") {
+    const idx = Math.max(0, STAGES.findIndex((s) => s.id === run.stage));
+    const steps = mockSteps(null, {});
+    const elapsed = ((now - MODULE_START) % 15000) + 4000;
+    const before = steps.slice(0, idx).reduce((t, s) => t + s.ms, 0);
+    return wrap(mockTimeline(steps, now - before - elapsed, now));
+  }
+
+  if (run.run_id === "run_mock_failed") {
+    const failedAt = Math.max(now, created + 90_000); // the run is over, whatever this browser's clock says
+    const steps = mockSteps(null, {}).slice(0, 3);
+    steps[2] = {
+      ...steps[2],
+      ms: 31_000,
+      error: "v cannot be empty (the clip has no usable audio)",
+      children: [
+        {
+          ...steps[2].children![0],
+          label: "Original · en",
+          to: 0.9,
+          detail: { lang: "en", model: ASR_MODEL },
+          error: "v cannot be empty (the clip has no usable audio)",
+        },
+        { ...steps[2].children![1], label: "Dub · de", to: 0.7, detail: { lang: "de", model: ASR_MODEL } },
+      ],
+    };
+    return wrap(mockTimeline(steps, created, failedAt), failedAt);
+  }
+
+  if (run.status === "succeeded") {
+    const cached = run.run_id === "rerun-es-v1-llm";
+    const steps = mockSteps(run.review, { cached, avJudge: true });
+    const total = steps.reduce((t, s) => t + s.ms, 0);
+    return wrap(mockTimeline(steps, created, created + total + 1000), created + total + 1000);
+  }
+
+  return wrap([]); // queued
+}
+
 export const mockApi: VreviewApi = {
   async listReviews(limit = 50, offset = 0) {
     await delay(150);
@@ -241,6 +470,12 @@ export const mockApi: VreviewApi = {
     const r = allRuns().find((x) => x.run_id === runId);
     if (!r) throw new ApiError(404, "Review run not found");
     return r;
+  },
+  async getPipeline(runId) {
+    await delay(100);
+    const r = allRuns().find((x) => x.run_id === runId);
+    if (!r) throw new ApiError(404, "Review run not found");
+    return mockPipeline(r);
   },
   async getMedia(runId, assetId) {
     await delay(50);

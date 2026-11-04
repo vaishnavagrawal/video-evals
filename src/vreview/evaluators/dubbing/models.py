@@ -15,6 +15,7 @@ class DubConfig(BaseModel):
     asr_cloud_model: str | None = "groq/whisper-large-v3"
     asr_local_model: str = "small"
     llm_models: list[str] = Field(default_factory=lambda: ["gemini-flash", "auto/best-fast"])
+    judge_mode: str = "fallback"            # "fallback" | "ensemble" (every model judges, answers merged)
     separate: bool = False
     visual: bool = True
     max_visual_windows: int = 60
@@ -29,6 +30,8 @@ class DubConfig(BaseModel):
         defaults: dict = {}
         if s.judge_models:
             defaults["llm_models"] = list(s.judge_models)
+        if s.judge_mode:
+            defaults["judge_mode"] = s.judge_mode
         if s.asr_model:
             defaults["asr_cloud_model"] = None if s.asr_model.strip().lower() == "none" else s.asr_model.strip()
         return cls(src_lang=brief.source_language, tgt_langs=brief.target_languages,

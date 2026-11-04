@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "@/lib/api";
 import {
   PRIORITIES,
@@ -13,6 +13,7 @@ import {
   type Triage,
 } from "@/lib/api/types";
 import { areaOf, priorityOf, tagsOf, triage as computeTriage } from "@/lib/triage";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Kbd } from "@/components/ui/kbd";
 import { Markdown } from "../markdown";
@@ -46,7 +47,8 @@ function isTyping(el: EventTarget | null) {
   return e.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(e.tagName);
 }
 
-export function ReviewDetail({ review }: { review: Review }) {
+/** `pipeline` is rendered under the summary (the page passes the collapsible pipeline card). */
+export function ReviewDetail({ review, pipeline }: { review: Review; pipeline?: ReactNode }) {
   const { triage, issues, computedLocally } = useTriage(review);
   const issuesById = useMemo(() => new Map(issues.map((i) => [i.id, i])), [issues]);
   const threads = triage.threads;
@@ -250,6 +252,7 @@ export function ReviewDetail({ review }: { review: Review }) {
   const tracks = [...new Set(threads.map((t) => t.track).filter(Boolean))];
   const warnings = review.results.flatMap((r) => r.warnings.map((w) => `${r.evaluator}: ${w}`));
   const notOk = review.results.filter((r) => r.status !== "ok");
+  const incomplete = review.results.flatMap((r) => (r.incomplete ?? []).map((part) => `${r.evaluator}: ${part}`));
 
   return (
     <div className="px-4 py-5 lg:px-6">
@@ -262,6 +265,15 @@ export function ReviewDetail({ review }: { review: Review }) {
             Score <span className="font-semibold tabular-nums">{review.score == null ? "–" : review.score.toFixed(1)}</span>
             <span className="text-muted-foreground">/100</span>
           </span>
+          {incomplete.length > 0 && (
+            <Badge
+              variant="outline"
+              className="text-shouldfix border-shouldfix/30 bg-shouldfix-soft"
+              title={`Parts of this review did not complete: ${incomplete.join("; ")}`}
+            >
+              Incomplete
+            </Badge>
+          )}
           <span className="flex flex-wrap gap-1.5" aria-label="Thread counts">
             {PRIORITIES.map((p) => (
               <PriorityBadge key={p} p={p} count={triage.counts[p] ?? 0} />
@@ -322,6 +334,8 @@ export function ReviewDetail({ review }: { review: Review }) {
           )}
         </CardContent>
       </Card>
+
+      {pipeline}
 
       <div className="grid gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(440px,520px)]">
         {/* Left: players + timeline */}

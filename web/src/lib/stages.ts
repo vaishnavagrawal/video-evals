@@ -5,6 +5,7 @@ export const STAGES = [
   { id: "dubbing_features", label: "Extract features (ASR, separation)" },
   { id: "dubbing_pairs", label: "Compare original and dub" },
   { id: "assemble", label: "Assemble review" },
+  { id: "av_judge", label: "Audio-video judge" },
   { id: "finalize", label: "Triage and finalize" },
 ] as const;
 

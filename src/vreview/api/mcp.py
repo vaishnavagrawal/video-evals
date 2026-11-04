@@ -88,6 +88,16 @@ def get_review(
 
 
 @mcp_server.tool
+def get_pipeline(
+    run_id: str,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Get how a review run is progressing: every pipeline stage and child step with its status, timing and detail."""
+    tenant = _extract_tenant(ctx)
+    return services.get_pipeline(tenant=tenant, run_id=run_id)
+
+
+@mcp_server.tool
 def get_issues(
     run_id: str,
     severity: str | None = None,

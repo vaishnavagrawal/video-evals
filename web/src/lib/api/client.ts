@@ -58,6 +58,7 @@ export const xhrPutPart: PutPart = (url, body, { onProgress, signal }) =>
 export const realApi: VreviewApi = {
   listReviews: (limit = 50, offset = 0) => request("GET", `/reviews?limit=${limit}&offset=${offset}`),
   getReview: (runId) => request("GET", `/reviews/${enc(runId)}`),
+  getPipeline: (runId) => request("GET", `/reviews/${enc(runId)}/pipeline`),
   getMedia: (runId, assetId) => request("GET", `/reviews/${enc(runId)}/media/${enc(assetId)}`),
   createUpload: (req) => request("POST", "/uploads", req),
   completeUpload: async (assetId, uploadId, parts: CompletedPart[]) => {

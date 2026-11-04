@@ -5,6 +5,7 @@ import { usePoll } from "@/lib/use-poll";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { StageList } from "../stage-progress";
+import { PipelineSection, PipelineView } from "../pipeline-view";
 import { ErrorBox, Spinner, StatusBadge, fmtDate } from "../common";
 import { ReviewDetail } from "./review-detail";
 
@@ -36,10 +37,11 @@ export function ReviewPage({ runId: id }: { runId: string }) {
     );
   }
 
-  if (data.status === "succeeded" && data.review) return <ReviewDetail review={data.review} />;
+  if (data.status === "succeeded" && data.review)
+    return <ReviewDetail review={data.review} pipeline={<PipelineSection runId={data.run_id} />} />;
 
   return (
-    <div className="w-full max-w-[760px] px-4 py-6 lg:px-6">
+    <div className="w-full max-w-[980px] px-4 py-6 lg:px-6">
       <div className="flex items-center gap-3 mb-1">
         <h1 className="text-2xl font-normal font-mono">{data.run_id}</h1>
         <StatusBadge status={data.status} />
@@ -56,7 +58,11 @@ export function ReviewPage({ runId: id }: { runId: string }) {
         ) : (
           <p className="mb-3">Reviewing. A 1-minute clip takes about 2–3 minutes; full-length videos take longer.</p>
         )}
-        <StageList status={data.status} stage={data.stage} error={data.error} />
+        <PipelineView
+          runId={data.run_id}
+          error={data.status === "failed" ? data.error : null}
+          fallback={<StageList status={data.status} stage={data.stage} error={data.error} />}
+        />
       </div>
     </div>
   );

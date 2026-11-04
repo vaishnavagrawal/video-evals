@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import math
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import HTTPException, status
@@ -36,6 +37,7 @@ from vreview.db.repo import (
 from vreview.db.session import get_sessionmaker
 from vreview.jobs import MediaInput, ReviewInput
 from vreview.media_types import UnsupportedMedia, content_type_for, kind_for, validate_upload
+from vreview.pipeline_events import list_events as list_pipeline_events
 from vreview.schema import Brief, MediaRole, Review
 from vreview.storage import get_store, review_key
 from vreview.triage import triage as run_triage
@@ -356,6 +358,47 @@ def get_review(tenant: str, run_id: str) -> dict[str, Any]:
             "hatchet_run_id": run.hatchet_run_id,
             "created_at": run.created_at.isoformat() if run.created_at else None,
             "updated_at": run.updated_at.isoformat() if run.updated_at else None,
+        }
+
+
+def _aware(moment: datetime) -> datetime:
+    """SQLite hands back naive datetimes; everything we store is UTC."""
+    return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
+
+
+def get_pipeline(tenant: str, run_id: str) -> dict[str, Any]:
+    """The run's pipeline nodes (stages and their children) as recorded by vreview.pipeline_events.
+
+    Nodes come oldest start first; `duration_s` of a running node is its age at `server_time`. Runs from before
+    pipeline events existed have no nodes.
+    """
+    with get_sessionmaker()() as db:
+        run = get_run(db, tenant, run_id)
+        if not run:
+            raise _not_found("Review run not found")
+
+        now = datetime.now(timezone.utc)
+        nodes = []
+        for ev in list_pipeline_events(db, tenant, run_id):
+            started = _aware(ev.started_at)
+            finished = _aware(ev.finished_at) if ev.finished_at else None
+            nodes.append({
+                "node": ev.node,
+                "parent": ev.parent,
+                "label": ev.label,
+                "kind": ev.kind,
+                "status": ev.status,
+                "started_at": started.isoformat(),
+                "finished_at": finished.isoformat() if finished else None,
+                "duration_s": round(max(0.0, ((finished or now) - started).total_seconds()), 3),
+                "detail": ev.detail or {},
+            })
+        return {
+            "run_id": run.id,
+            "status": run.status,
+            "stage": run.stage,
+            "server_time": now.isoformat(),
+            "nodes": nodes,
         }
 
 

@@ -358,6 +358,7 @@ def run_pair(
     ).hexdigest()
     pair_cfg = {
         "llm_models": sorted(cfg.llm_models),
+        **({"judge_mode": cfg.judge_mode} if cfg.judge_mode != "fallback" else {}),   # old cache keys stay valid
         "visual": cfg.visual,
         "max_visual_windows": cfg.max_visual_windows,
         "separate": cfg.separate,
@@ -461,6 +462,7 @@ def run_pair(
         asr_cloud_model=cfg.asr_cloud_model,
         asr_local_model=cfg.asr_local_model,
         llm_models=cfg.llm_models,
+        judge_mode=cfg.judge_mode,
         separate=cfg.separate,
         visual=cfg.visual,
         max_visual_windows=cfg.max_visual_windows,
@@ -529,10 +531,14 @@ def assemble(pairs: list[PairResult], plan: TrackPlan) -> EvaluatorResult:
         for k, v in p.timings.items():
             timings[k] = timings.get(k, 0.0) + v
 
+    # dubeval.judge reports a chunk that failed on every model as a warning and drops its findings.
+    incomplete = [w for w in warnings if w.startswith("LLM judge failed")]
+
     return EvaluatorResult(
         evaluator="dubbing",
         version="1",
         status="ok",
+        incomplete=incomplete,
         score=score,
         issues=all_issues,
         summary=summary,

@@ -17,6 +17,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -154,6 +155,33 @@ class IssueRow(Base):
     __table_args__ = (
         PrimaryKeyConstraint("id", "run_id"),
         Index("ix_issues_run_id_severity_category", "run_id", "severity", "category"),
+    )
+
+
+class PipelineEventRow(Base):
+    """One node of a run's pipeline (a stage, or a child of a stage), upserted as the run progresses.
+
+    Generic on purpose: any evaluator or stage may emit nodes (see vreview.pipeline_events) and the UI
+    draws whatever is stored, so there is no fixed list of stages.
+    """
+
+    __tablename__ = "pipeline_events"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=lambda: gen_id("pev"))
+    run_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("runs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    node: Mapped[str] = mapped_column(String(128), nullable=False)
+    parent: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    label: Mapped[str] = mapped_column(String(256), nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), default="stage", nullable=False)  # "stage" | "child"
+    status: Mapped[str] = mapped_column(String(16), nullable=False)  # running | succeeded | failed | skipped
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    detail: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("run_id", "node", name="uq_pipeline_events_run_id_node"),
     )
 
 

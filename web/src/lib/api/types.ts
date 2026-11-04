@@ -89,6 +89,8 @@ export interface EvaluatorResult {
   artifacts: Record<string, string>;
   warnings: string[];
   timings: Record<string, number>;
+  /** Parts of the evaluation that did not complete (e.g. a judge that failed); empty/absent when nothing is missing. */
+  incomplete?: string[];
 }
 
 export interface Thread {
@@ -227,6 +229,37 @@ export interface FeedbackResponse {
   feedback_id: string;
 }
 
+export type PipelineNodeStatus = "pending" | "running" | "succeeded" | "failed" | "skipped";
+
+/**
+ * One node of GET /v1/reviews/{run_id}/pipeline. Generic: any evaluator or stage can emit nodes, so `node` ids
+ * and `detail` keys are open-ended. A child has `parent` set to its stage's `node` (e.g. "dubbing_features/<slug>").
+ */
+export interface PipelineNode {
+  node: string;
+  parent: string | null;
+  label: string;
+  /** "stage" | "child" today; kept open so a new kind does not break parsing. */
+  kind: string;
+  status: PipelineNodeStatus;
+  started_at: string;
+  finished_at: string | null;
+  /** Server-computed; for a running node, its age at `server_time`. */
+  duration_s: number | null;
+  /** Free-form, e.g. { model, models, issues, score, cached, error, reason }. */
+  detail: Record<string, unknown>;
+}
+
+/** GET /v1/reviews/{run_id}/pipeline. `nodes` is empty for a queued run and for runs from before pipeline events. */
+export interface Pipeline {
+  run_id: string;
+  status: RunStatus;
+  stage: string | null;
+  /** The server's clock when the response was built; lets the browser tick running nodes without clock skew. */
+  server_time?: string;
+  nodes: PipelineNode[];
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -246,6 +279,8 @@ export type PutPart = (
 export interface VreviewApi {
   listReviews(limit?: number, offset?: number): Promise<ReviewList>;
   getReview(runId: string): Promise<ReviewRun>;
+  /** Pipeline nodes of a run (stages and their children). Rejects with a 404 ApiError on an API without the endpoint. */
+  getPipeline(runId: string): Promise<Pipeline>;
   getMedia(runId: string, assetId: string): Promise<MediaUrl>;
   createUpload(req: CreateUploadRequest): Promise<CreateUploadResponse>;
   completeUpload(assetId: string, uploadId: string, parts: CompletedPart[]): Promise<void>;

@@ -42,6 +42,7 @@ class Config:
     asr_cloud_model: str | None = "groq/whisper-large-v3"
     asr_local_model: str = "small"
     llm_models: list[str] = field(default_factory=lambda: ["gemini-flash", "auto/best-fast"])
+    judge_mode: str = "fallback"     # "fallback" (first model that answers) | "ensemble" (all models, merged)
     separate: bool = False
     visual: bool = True
     max_visual_windows: int = 60
@@ -192,7 +193,7 @@ def run_pair(src: Track, dub: Track, work: Path, cfg: Config) -> Report:
         from .judge import judge
 
         judged = judge([r for r in rows if r["orig"] or r["dub"]], cfg.llm_models, src.lang.name, dub.lang.name,
-                       pair_dir / "judge_cache.json", warnings)
+                       pair_dir / "judge_cache.json", warnings, mode=cfg.judge_mode)
         for ln in lines:
             judged_line = judged.get(ln.index, {})
             for x in judged_line.get("issues", []):
@@ -202,7 +203,8 @@ def run_pair(src: Track, dub: Track, work: Path, cfg: Config) -> Report:
                                "start": round(ln.start, 2), "end": round(max(ln.end, ln.dub_end or ln.end), 2),
                                "line_index": ln.index, "description": x.get("explanation", ""),
                                "fix_hint": x.get("fix_hint", "Re-translate this line."),
-                               "evidence": {"model": judged_line["model"]} if judged_line.get("model") else {}})
+                               "evidence": {"model": "+".join(x["models"]) if x.get("models") else judged_line.get("model")}
+                               if (x.get("models") or judged_line.get("model")) else {}})
         t = _clock(timings, "judge", t)
 
     # ---- frames: video untouched? then mouth activity on flagged windows (language independent)

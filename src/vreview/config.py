@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # A brief can still override them per review through `options`.
     # Text judge for dubbing meaning/tone (VREVIEW_JUDGE_MODELS). Empty = DubConfig's built-in default.
     judge_models: Annotated[list[str], NoDecode] = []
+    # "fallback": first model that answers; "ensemble": every judge model judges every chunk, answers merged
+    # (more recall, steadier results, N times the calls). VREVIEW_JUDGE_MODE.
+    judge_mode: Literal["fallback", "ensemble"] | None = None
     # Writes review-thread comments and the summary (VREVIEW_TRIAGE_LLM_MODELS). Empty = rule-based text only.
     triage_llm_models: Annotated[list[str], NoDecode] = []
     # Multimodal (video + audio) second-opinion reviewer (VREVIEW_AV_JUDGE_MODELS). Empty = evaluator skipped.
@@ -64,6 +67,16 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [part.strip() for part in value.split(",") if part.strip()]
         return value
+
+
+def load_env_file(path: str = ".env") -> None:
+    """Export a local .env into os.environ (real environment variables win). Provider credentials
+    (META_API_KEY, LLM_PROVIDER_*) are read from os.environ by dubeval.providers, not by Settings."""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(path, override=False)
 
 
 @lru_cache

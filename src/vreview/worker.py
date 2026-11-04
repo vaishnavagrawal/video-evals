@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     """Start the Hatchet worker registering all vreview workflows."""
+    from vreview.config import load_env_file
+
+    load_env_file()
     logging.basicConfig(level=logging.INFO)
     slots_env = os.environ.get("VREVIEW_WORKER_SLOTS", "4")
     try:

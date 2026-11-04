@@ -159,6 +159,14 @@ def get_review_endpoint(
     return services.get_review(tenant=tenant, run_id=run_id)
 
 
+@router.get("/reviews/{run_id}/pipeline")
+def get_pipeline_endpoint(
+    run_id: str,
+    tenant: str = Depends(get_current_tenant),
+):
+    return services.get_pipeline(tenant=tenant, run_id=run_id)
+
+
 @router.get("/reviews")
 def list_reviews_endpoint(
     limit: int = Query(default=20, ge=1, le=100),

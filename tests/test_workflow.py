@@ -77,7 +77,7 @@ def test_workflow_dag_structure():
     # Finalize task
     fin_t = task_map["finalize"]
     assert fin_t.retries == 3
-    assert set(p.name for p in fin_t.parents) == {"ingest", "assemble"}
+    assert set(p.name for p in fin_t.parents) == {"ingest", "av_judge"}
 
     # On failure task
     assert review_workflow._on_failure_task is not None
@@ -399,3 +399,55 @@ def test_triage_languages_fall_back_to_the_single_dub_pair():
 def test_finalize_timeout_leaves_room_for_the_llm_wait():
     fin = {t.name: t for t in review_workflow.tasks}["finalize"]
     assert fin.execution_timeout >= timedelta(seconds=review_module.TRIAGE_LLM_TIMEOUT_S) + timedelta(minutes=2)
+
+
+# ---------------------------------------------------------------------------
+# av_judge task
+# ---------------------------------------------------------------------------
+
+def _av_ctx(results, media=None):
+    from vreview.workflows.review import DubbingPlanOutput
+    ctx = MagicMock()
+    outs = {"ingest": IngestOutput(media=media or []), "dubbing_plan": DubbingPlanOutput(),
+            "assemble": AssembleOutput(results=results)}
+    ctx.task_output.side_effect = lambda task: outs[task.name]
+    return ctx
+
+
+def _dub_result():
+    from vreview.schema import Issue
+    iss = Issue(id="dubbing:hi->es:I001", evaluator="dubbing", category="EARLY_CUTOFF", severity="major",
+                confidence=0.8, t0=1, t1=2, track="hi->es", description="d", fix_hint="f")
+    return EvaluatorResult(evaluator="dubbing", version="1", status="ok", score=90, issues=[iss])
+
+
+def test_av_judge_task_without_models_passes_results_through(tmp_path):
+    from vreview.workflows.review import av_judge_task
+    res = _dub_result()
+    with patch("vreview.workflows.review.settings", return_value=Settings(_env_file=None, scratch_dir=tmp_path, av_judge_models=[])), \
+         patch("vreview.db.repo.mark_run"), patch("vreview.pipeline_events.record"):
+        out = av_judge_task._fn(ReviewInput(run_id="r1", brief=Brief(), media=[]), _av_ctx([res]))
+    assert [r.evaluator for r in out.results] == ["dubbing"]
+
+
+def test_av_judge_task_applies_verdicts_and_contains_failures(tmp_path):
+    from vreview.evaluators import av_judge as av
+    from vreview.workflows.review import av_judge_task
+    res = _dub_result()
+    review = {"dubbing:hi->es:I001": {"issue_id": "dubbing:hi->es:I001", "verdict": "dispute", "confidence": 0.9,
+                                      "reason": "fine", "model": "meta:m"}}
+    fake = av.AVJudgeOutput(result=EvaluatorResult(evaluator="av_judge", version="1", status="ok"), reviews=review)
+    s = Settings(scratch_dir=tmp_path, av_judge_models=["meta:m"])
+    with patch("vreview.workflows.review.settings", return_value=s), patch("vreview.db.repo.mark_run"), \
+         patch("vreview.pipeline_events.record"), patch("vreview.workflows.review.get_store"), \
+         patch.object(av, "run", return_value=fake):
+        out = av_judge_task._fn(ReviewInput(run_id="r1", brief=Brief(), media=[]), _av_ctx([res]))
+    assert [r.evaluator for r in out.results] == ["dubbing", "av_judge"]
+    assert out.results[0].issues[0].details["av_review"]["verdict"] == "dispute"
+    assert res.issues[0].confidence == 0.8                       # upstream output not mutated
+
+    with patch("vreview.workflows.review.settings", return_value=s), patch("vreview.db.repo.mark_run"), \
+         patch("vreview.pipeline_events.record"), patch("vreview.workflows.review.get_store"), \
+         patch.object(av, "run", side_effect=RuntimeError("ffmpeg exploded")):
+        out = av_judge_task._fn(ReviewInput(run_id="r1", brief=Brief(), media=[]), _av_ctx([res]))
+    assert out.results[-1].status == "failed" and "ffmpeg exploded" in out.results[-1].reason

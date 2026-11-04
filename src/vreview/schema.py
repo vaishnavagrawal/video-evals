@@ -83,6 +83,9 @@ class EvaluatorResult(BaseModel):
     summary: dict = Field(default_factory=dict)
     artifacts: dict[str, str] = Field(default_factory=dict, description="name -> blob key")
     warnings: list[str] = Field(default_factory=list)
+    incomplete: list[str] = Field(default_factory=list,
+                                  description="Parts the evaluator could not check (e.g. failed judge calls). "
+                                              "Non-empty means missing findings, so the review is never approved")
     timings: dict[str, float] = Field(default_factory=dict)
 
 

@@ -50,6 +50,9 @@ app.mount("/mcp", mcp_app)
 
 
 def main() -> None:
+    from vreview.config import load_env_file
+
+    load_env_file()
     import uvicorn
 
     uvicorn.run("vreview.api.app:app", host="0.0.0.0", port=8000, reload=False)

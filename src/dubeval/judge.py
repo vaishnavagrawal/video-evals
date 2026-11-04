@@ -63,37 +63,95 @@ def _chunk(client, model: str, items: list[dict], src: str, tgt: str) -> list[di
     return items_out
 
 
-def judge(rows: list[dict], models: list[str], src: str, tgt: str, cache: Path, warnings: list[str],
-          chunk: int = 10, workers: int = 3) -> dict[int, dict]:
-    """rows: [{"i", "orig", "dub", "script"}]. Returns {i: {"orig_en", "dub_en", "issues"}}.
+_SEV = {"critical": 0, "major": 1, "minor": 2}
 
-    Each chunk tries every model in order (2 attempts each); results are cached per input hash so a
-    rerun only re-asks chunks that failed or changed.
+
+def _merge(results: list[tuple[str, list[dict]]]) -> list[dict]:
+    """Union of several models' answers for one chunk. Same (line, category) = one issue: worst severity,
+    highest confidence (+0.1 when two or more models agree), `models` lists who reported it."""
+    lines: dict[int, dict] = {}
+    for model, items in results:
+        for item in items:
+            if not isinstance(item, dict) or not isinstance(item.get("i"), int):
+                continue
+            line = lines.setdefault(item["i"], {"i": item["i"], "orig_en": item.get("orig_en"),
+                                                "dub_en": item.get("dub_en"), "issues": {}, "models": []})
+            line["models"].append(model)
+            for x in item.get("issues") or []:
+                if not isinstance(x, dict) or x.get("category") not in CATS:
+                    continue
+                cur = line["issues"].get(x["category"])
+                if cur is None:
+                    line["issues"][x["category"]] = {**x, "models": [model]}
+                    continue
+                cur["models"].append(model)
+                if _SEV.get(x.get("severity"), 3) < _SEV.get(cur.get("severity"), 3):
+                    cur.update(severity=x["severity"], explanation=x.get("explanation"), fix_hint=x.get("fix_hint"))
+                cur["confidence"] = max(float(cur.get("confidence") or 0.6), float(x.get("confidence") or 0.6))
+    out = []
+    for line in lines.values():
+        issues = []
+        for x in line["issues"].values():
+            if len(set(x["models"])) > 1:
+                x["confidence"] = min(1.0, float(x.get("confidence") or 0.6) + 0.1)
+            issues.append(x)
+        out.append({**line, "issues": issues, "model": "+".join(dict.fromkeys(line["models"]))})
+    return out
+
+
+def judge(rows: list[dict], models: list[str], src: str, tgt: str, cache: Path, warnings: list[str],
+          chunk: int = 10, workers: int = 3, mode: str = "fallback") -> dict[int, dict]:
+    """rows: [{"i", "orig", "dub", "script"}]. Returns {i: {"orig_en", "dub_en", "issues", "model"}}.
+
+    mode "fallback": each chunk tries every model in order (2 attempts each) and keeps the first answer.
+    mode "ensemble": every model judges every chunk and the answers are merged (`_merge`); a chunk counts as
+    failed only if every model failed, and a model that failed is reported as a warning.
+    Results are cached per input hash (and mode), so a rerun only re-asks chunks that failed or changed.
     """
     client = _client()
     cached: dict = json.loads(cache.read_text()) if cache.exists() else {}
     chunks = [rows[k:k + chunk] for k in range(0, len(rows), chunk)]
 
     def key(c):
-        return hashlib.sha1(json.dumps(c, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+        tag = {"mode": mode, "models": models} if mode == "ensemble" else None
+        return hashlib.sha1(json.dumps([c, tag] if tag else c, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+
+    def ask(model, c):
+        last = None
+        for attempt in range(2):
+            try:
+                res = _chunk(client, model, c, src, tgt)
+                for item in res:
+                    if isinstance(item, dict):
+                        item["model"] = model      # provenance: which model judged this line
+                return res, None
+            except Exception as e:  # timeout / 429 / bad JSON -> retry, then next model
+                last = f"{model}: {str(e)[:160]}"
+                time.sleep(3 * (attempt + 1))
+        return None, last
 
     def run(c):
         k = key(c)
         if k in cached:
             return k, cached[k]
-        last = None
-        for model in models:
-            for attempt in range(2):
-                try:
-                    res = _chunk(client, model, c, src, tgt)
-                    for item in res:
-                        if isinstance(item, dict):
-                            item["model"] = model      # provenance: which model judged this line
+        span = f"lines {c[0]['i']}-{c[-1]['i']}"
+        if mode == "ensemble":
+            answers, errors = [], []
+            with ThreadPoolExecutor(len(models)) as per_model:
+                for model, (res, err) in zip(models, per_model.map(lambda m: ask(m, c), models)):
+                    (answers.append((model, res)) if res is not None else errors.append(err))
+            if answers:
+                for err in errors:
+                    warnings.append(f"LLM judge model skipped for {span} ({err})")
+                return k, _merge(answers)
+            last = "; ".join(e for e in errors if e)
+        else:
+            last = None
+            for model in models:
+                res, last = ask(model, c)
+                if res is not None:
                     return k, res
-                except Exception as e:  # timeout / 429 / bad JSON -> retry, then next model
-                    last = f"{model}: {str(e)[:160]}"
-                    time.sleep(3 * (attempt + 1))
-        warnings.append(f"LLM judge failed for lines {c[0]['i']}-{c[-1]['i']} ({last})")
+        warnings.append(f"LLM judge failed for {span} ({last})")
         log.warning(warnings[-1])
         return k, None
 

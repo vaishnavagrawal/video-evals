@@ -38,12 +38,12 @@ _SEVERITY_PRIORITY: dict[str, Priority] = {"critical": "blocker", "major": "shou
 _AREA_CATEGORIES: dict[Area, tuple[str, ...]] = {
     "accuracy": ("MEANING_MISMATCH", "MISSING_CONTENT", "ADDED_CONTENT", "NAME_OR_TERM_ERROR"),
     "sync": ("LATE_START", "EARLY_START", "EARLY_CUTOFF", "OVERRUN", "SYNC_DRIFT", "MID_LINE_GAP",
-             "MISSING_DUB", "UNMATCHED_SPEECH", "DURATION_MISMATCH"),
-    "audio-mix": ("BACKGROUND_DROPOUT", "ENERGY_MISMATCH"),
-    "delivery": ("TONE_MISMATCH", "FAST_SPEECH"),
-    "script": ("SCRIPT_DEVIATION", "SUBTITLE_AUDIO_DESYNC"),
+             "MISSING_DUB", "UNMATCHED_SPEECH", "DURATION_MISMATCH", "LIP_SYNC"),
+    "audio-mix": ("BACKGROUND_DROPOUT", "ENERGY_MISMATCH", "AUDIO_ARTIFACT"),
+    "delivery": ("TONE_MISMATCH", "FAST_SPEECH", "EMOTION_MISMATCH", "VOICE_MISMATCH"),
+    "script": ("SCRIPT_DEVIATION", "SUBTITLE_AUDIO_DESYNC", "BRIEF_MISMATCH"),
     "language": ("WRONG_LANGUAGE", "UNTRANSLATED"),
-    "video": ("VIDEO_MISMATCH",),
+    "video": ("VIDEO_MISMATCH", "VISUAL_ARTIFACT"),
 }
 AREA_BY_CATEGORY: dict[str, Area] = {cat: area for area, cats in _AREA_CATEGORIES.items() for cat in cats}
 
@@ -99,6 +99,11 @@ def issue_tags(issue: Issue) -> list[str]:
         tags.append("on-camera")
     if _source(issue) == "semantic":
         tags.append("llm")  # LLM findings were only 18-25% repeatable across runs; the UI says so
+    if _source(issue) == "av_judge":
+        tags.append("av-judge")
+    review = (issue.details or {}).get("av_review")
+    if isinstance(review, dict) and review.get("verdict") in ("confirm", "dispute"):
+        tags.append("av:confirmed" if review["verdict"] == "confirm" else "av:disputed")
     return tags
 
 
@@ -180,6 +185,12 @@ _TITLES = {
     "WRONG_LANGUAGE": "Dub is not in the target language",
     "UNTRANSLATED": "Line was left untranslated",
     "VIDEO_MISMATCH": "Video does not match the original",
+    "LIP_SYNC": "Lips do not match the speech",
+    "VOICE_MISMATCH": "Voice does not fit the on-screen speaker",
+    "EMOTION_MISMATCH": "Delivery misses the emotion of the scene",
+    "AUDIO_ARTIFACT": "Audible artifact in the voice or mix",
+    "VISUAL_ARTIFACT": "Visual glitch or artifact",
+    "BRIEF_MISMATCH": "Content does not match the brief",
 }
 
 _WHY = {
@@ -299,17 +310,22 @@ def _build_thread(thread_id: str, members: list[Issue]) -> Thread:
     )
 
 
-def _verdict(counts: dict[str, int], any_evaluator_ok: bool) -> Verdict:
+def _verdict(counts: dict[str, int], any_evaluator_ok: bool, incomplete: bool = False) -> Verdict:
     """request_changes if any blocker thread, else needs_human if any needs-human thread, else approve.
     A review in which no evaluator completed (all skipped or failed, or none ran) checked nothing, so it is
-    never approved: it goes to a human."""
+    never approved: it goes to a human. Neither is a review with gaps (`incomplete`, e.g. judge calls that
+    failed): missing findings must not read as a clean result."""
     if not any_evaluator_ok:
         return "needs_human"
     if counts["blocker"]:
         return "request_changes"
-    if counts["needs-human"]:
+    if counts["needs-human"] or incomplete:
         return "needs_human"
     return "approve"
+
+
+def incomplete_reasons(review: Review) -> list[str]:
+    return [f"{r.evaluator}: {why}" for r in review.results if r.status == "ok" for why in r.incomplete]
 
 
 def _plural(n: int, word: str) -> str:
@@ -356,9 +372,16 @@ def _summary(review: Review, threads: list[Thread], n_issues: int, counts: dict[
     elif len(not_ok) < len(review.results):
         sentences.append(f"**{_VERDICT_LABELS[verdict]}.** No issues were found.")
 
+    gaps = incomplete_reasons(review)
+    if gaps:
+        sentences.insert(0, f"**Incomplete review.** {gaps[0]}" + (f" (+{len(gaps) - 1} more)" if len(gaps) > 1 else "")
+                         + "; findings for those parts are missing.")
     if review.score is not None:
-        sentences.append(f"Score {review.score:.1f}/100.")
-    return " ".join(sentences[:5])
+        score = f"Score {review.score:.1f}/100"
+        if verdict == "approve" and review.score < 70:
+            score += " counts every detected issue, including nits; the verdict only weighs blocker and needs-human threads"
+        sentences.append(score + ".")
+    return " ".join(sentences[:6])
 
 
 # ---------------------------------------------------------------------------
@@ -393,7 +416,7 @@ def triage(review: Review, cfg: TriageConfig | None = None) -> Triage:
         counts[thread.priority] += 1
         areas.update(thread.areas)
     area_counts = dict(sorted(areas.items(), key=lambda kv: (-kv[1], kv[0])))
-    verdict = _verdict(counts, any(r.status == "ok" for r in review.results))
+    verdict = _verdict(counts, any(r.status == "ok" for r in review.results), bool(incomplete_reasons(review)))
 
     return Triage(
         verdict=verdict,

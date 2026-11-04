@@ -71,7 +71,7 @@ def test_every_secret_comes_from_coolify_or_is_required(services):
             if not secret_keys.search(key) or value is None:
                 continue
             assert re.fullmatch(
-                r".*\$\{(SERVICE_[A-Z0-9_]+|[A-Z0-9_]+:\?|HATCHET_CLIENT_TOKEN:-|DUBEVAL_LLM_API_KEY:-)\}.*", value
+                r".*\$\{(SERVICE_[A-Z0-9_]+|[A-Z0-9_]+:\?|HATCHET_CLIENT_TOKEN:-|DUBEVAL_LLM_API_KEY:-|META_API_KEY:-)\}.*", value
             ), f"{name}.{key} is a literal secret: {value!r}"
 
 

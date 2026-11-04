@@ -5,7 +5,8 @@ senior engineer reviews a pull request. You upload the media and a brief, and it
 (blocker, should-fix, needs-human, nit) with evidence and a fix instruction a generator can act on. Results
 come back over REST, MCP or a webhook, and a review UI plays the original and the dub side by side.
 
-Built for the Meta Global AI Developer Hackathon (Nov 2026). Theme: **Build for Your World**. Meta's **Muse
+Built for the Meta Global AI Developer Hackathon (Nov 2026), **Indie developer track**, theme **Build for
+Your World**. Meta's **Muse
 Spark** watches and listens to the video, and deterministic signal processing keeps it honest.
 
 <!-- DEMO: link to the demo video / GIF here -->
@@ -91,7 +92,23 @@ Tests: `uv run pytest` (backend), `cd web && pnpm build`.
 
 ## Results
 
-<!-- E2E: fill in from the verified run -->
+Verified end to end through the API (upload, Hatchet worker, review) on a 60 s Hindi→Spanish dub pair
+(run `run_ba845aabc525`, 2026-11-04):
+
+| Stage | Time | Result |
+|---|---|---|
+| Speech features (ASR) | cached | reused from an earlier run of the same media |
+| Dub checks + text judge (Muse Spark + gemini-flash, ensemble) | 279 s | 12 issues |
+| Audio-video judge (Muse Spark, 7 clip windows with audio) | 53 s | **8 confirmed, 3 disputed, 3 new** (2 lip sync, 1 missing crowd audio) |
+| Triage + review text (Muse Spark) | 180 s | 8 threads, verdict `request_changes`, score 13.6 |
+
+Two of the three disputes were "missing dub" flags over audience laughter, a known false-positive class of
+the timing checks. Muse Spark saw no dialogue there, so those issues dropped from blocker to `needs-human`.
+
+On a 10-line transcript chunk, Muse Spark alone found 1 issue in 66 s and gemini-flash found 3 in 76 s. The
+ensemble kept all 3 and raised confidence on the one both found. That's why the text judge runs both.
+
+`uv run pytest`: 525 passed.
 
 ## Known limits
 

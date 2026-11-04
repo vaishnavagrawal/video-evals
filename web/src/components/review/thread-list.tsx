@@ -81,6 +81,7 @@ function FeedbackSummary({ ids, fb }: { ids: string[]; fb: FeedbackMap }) {
 function IssueRow({ issue, fb, send }: { issue: Issue; fb?: IssueFeedback; send: SendFeedback }) {
   const conf = Math.round(issue.confidence * 100);
   const v = issue.details?.visual;
+  const av = (issue.details as { av_review?: { verdict?: string; model?: string; reason?: string } } | undefined)?.av_review;
   return (
     <li className="px-3 py-2 text-[12px]">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -121,6 +122,15 @@ function IssueRow({ issue, fb, send }: { issue: Issue; fb?: IssueFeedback; send:
         <p className="text-muted-foreground mt-0.5">
           Visual: {v.speaking_likely == null ? "no face found" : v.speaking_likely ? "face likely speaking" : "face not speaking"}
           {v.mouth_activity != null && ` · mouth activity ${v.mouth_activity}`}
+        </p>
+      )}
+      {av && (
+        <p className="mt-0.5 border-l-2 border-link pl-2">
+          <span className="font-medium">
+            {av.verdict === "confirm" ? "Confirmed" : av.verdict === "dispute" ? "Disputed" : "Unsure"} by{" "}
+            {av.model ?? "audio-video judge"}
+          </span>
+          {av.reason ? `: ${av.reason}` : ""}
         </p>
       )}
       <p className="font-mono text-[11px] text-muted-foreground/80 mt-0.5">{issue.id}</p>

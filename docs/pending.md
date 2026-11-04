@@ -1,6 +1,6 @@
 # Pending work
 
-Updated 2026-11-04. Open items only. What exists today: `docs/mvp-summary.md`. Live deployment: `deploy/coolify/README.md`. Triage and UI spec: `docs/triage-and-ui-contract.md`.
+Updated 2026-11-04 (evening). Open items only. What exists today: `docs/mvp-summary.md`. Live deployment: `deploy/coolify/README.md`. Triage and UI spec: `docs/triage-and-ui-contract.md`.
 
 Priority: **P1** before real users, **P2** soon, **P3** when it hurts.
 
@@ -8,11 +8,11 @@ Priority: **P1** before real users, **P2** soon, **P3** when it hurts.
 
 These decide whether a score can be trusted or used as a gate.
 
-- **Judge model order.** `gemini-flash` is first in `llm_models`. On the same transcript it returned 0 issues in 3 of 3 runs, while `auto/best-fast` returned 8 to 11 (`dubeval/judge.py` moves to the second model only on error or timeout). Findings therefore depend on gateway latency. Options: put the stricter model first, judge with both and merge, or take the union of N runs.
-- **Judge failures are warnings.** A chunk that fails on every model drops its issues and only adds a warning. A review with failed judge chunks should be marked incomplete, not scored as clean.
+- **Judge model order.** *Mitigated:* `VREVIEW_JUDGE_MODE=ensemble` runs every judge model and merges the answers (`dubeval/judge.py`). Still open: measure it on a golden set. `gemini-flash` is first in `llm_models`. On the same transcript it returned 0 issues in 3 of 3 runs, while `auto/best-fast` returned 8 to 11 (`dubeval/judge.py` moves to the second model only on error or timeout). Findings therefore depend on gateway latency. Options: put the stricter model first, judge with both and merge, or take the union of N runs.
+- *Done:* **Judge failures are warnings.** `EvaluatorResult.incomplete` now lists failed chunks and triage never approves an incomplete review. Original note: A chunk that fails on every model drops its issues and only adds a warning. A review with failed judge chunks should be marked incomplete, not scored as clean.
 - **Run-to-run noise.** Demucs uses a random shift (`--shifts`, default 1), so stems differ by 35 to 45% RMS between runs; fix the seed or set shifts to 0. Groq Whisper returned 36 segments on a run where an earlier run of the same audio gave 45. A fresh rerun moved scores by about 2 points (es-v1 10.5 to 12.4, es-v2 9.1 to 6.8).
 - **Mislabelled missing dub.** The judge sometimes returns `UNTRANSLATED` ("the dub is empty") for a missing dub, which adds a false `language` area to a thread.
-- **Score vs verdict.** The score subtracts for every issue, the verdict only looks at blockers, so a 10 s clip scored 3.5/100 and was marked Approved. Explain it in the UI or change the score.
+- *Done (explained, not changed):* **Score vs verdict.** The summary says the score counts every issue. Original note: The score subtracts for every issue, the verdict only looks at blockers, so a 10 s clip scored 3.5/100 and was marked Approved. Explain it in the UI or change the score.
 - **MediaPipe 0.10.35.** The FaceLandmarker flips `speaking_likely` on a few issues compared with 0.10.21, which moved 6 to 7 severities per report. Decide whether to accept it or tune thresholds.
 
 ## Security and operations (P1 unless noted)
@@ -47,3 +47,12 @@ These decide whether a score can be trusted or used as a gate.
 3. **Evaluator #2:** identity and temporal consistency (shot detection, face/embedding drift, VLM judge).
 4. **Review agent** (pydantic-ai): picks evaluators from the brief, investigation tools, re-review diffing between versions. Runs inside a single Hatchet task; keep its calls cached.
 5. **Reference images** are stored and shown but no evaluator reads them. Needs an evaluator that uses them.
+
+## Added 2026-11-04 (Meta hackathon work)
+
+- **Meta key in this chat.** `META_API_KEY` was shared in a chat session. Rotate it after judging (dev.meta.ai), then update it in Coolify and in the local `.env`.
+- **Demo account.** `judge@vreview.demo` exists on production for the hackathon judges (password in `/root/backups/vreview/judge-login.txt`). Delete it or change its password after judging.
+- **av_judge accuracy is unmeasured.** It disputes issues and lowers their priority; check its disputes against human labels before trusting it as a filter. Clips are sent to the model provider as base64 data URLs (about 0.3 MB per 8 s window).
+- **Muse Spark latency.** A 10-thread comment chunk can take more than 60 s; `triage_llm.REQUEST_TIMEOUT_S` is 180 s. The ensemble judge doubles calls per chunk.
+- **Muse Voice Transcribe** has turn-level timestamps only, so it can't replace word-level Whisper for the timing checks. It could serve as a second ASR opinion or for diarization.
+- **Pipeline `cached` flag** is a heuristic (counts blob-store calls in the child task), see `vreview/workflows/review.py` `_CallLog`.

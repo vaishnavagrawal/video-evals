@@ -106,7 +106,9 @@ await page.locator('input[type="file"]').nth(0).setInputFiles([
     buffer: await readFile(new URL("../public/mock/reference-frame.jpg", import.meta.url)),
   },
 ]);
-await page.getByLabel("Source language").selectOption("hi");
+// shadcn Select (Radix): open the combobox, then pick the option.
+await page.getByRole("combobox", { name: "Source language" }).click();
+await page.getByRole("option", { name: "Hindi (hi)" }).click();
 await shot("new-review-files");
 await page.getByRole("button", { name: "Upload and start review" }).click();
 await page.waitForTimeout(700);
@@ -188,6 +190,21 @@ await shot("new-review-cancelled");
 await page.getByRole("button", { name: "Upload and start review" }).click();
 await page.waitForURL(/\/reviews\/run_/, { timeout: 30000 });
 console.log("re-upload after cancel: reached", page.url().replace(base, ""));
+
+// Dark theme (Carbon g100): the app follows the OS setting until the user picks a theme.
+await page.emulateMedia({ colorScheme: "dark" });
+await page.setViewportSize({ width: 1440, height: 900 });
+await page.goto(`${base}/`);
+await page.getByRole("link", { name: "dub-01.mp4" }).first().waitFor();
+await page.waitForTimeout(400);
+await shot("dashboard-dark");
+await page.goto(`${base}/reviews/rerun-es-v1-llm`);
+await page.getByText("Summary").first().waitFor();
+await page.keyboard.press("j");
+await page.keyboard.press("o");
+await page.waitForTimeout(800);
+await page.evaluate(() => window.scrollTo(0, 0));
+await shot("review-detail-dark");
 
 if (errors.length) console.log("browser errors:\n" + errors.join("\n"));
 await browser.close();

@@ -1,47 +1,105 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "../styles/carbon-theme.css";
 
-/* Neutral, GitHub-review-like palette. Priority colors are used only for small accents, always with a text label. */
-@theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+@custom-variant dark (&:is(.dark *));
 
-  --color-canvas: #ffffff;
-  --color-subtle: #f6f8fa;
-  --color-muted: #eff2f5;
-  --color-line: #d1d9e0;
-  --color-line-soft: #e5e9ee;
-  --color-fg: #1f2328;
-  --color-fg-muted: #59636e;
-  --color-accent: #0969da;
-  --color-accent-soft: #ddf4ff;
+/* Tailwind utilities for the role tokens in styles/carbon-theme.css. No color values here. */
+@theme inline {
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-sans);
 
-  --color-blocker: #cf222e;
-  --color-blocker-soft: #ffebe9;
-  --color-shouldfix: #bc4c00;
-  --color-shouldfix-soft: #fff1e5;
-  --color-human: #8250df;
-  --color-human-soft: #fbefff;
-  --color-nit: #59636e;
-  --color-nit-soft: #eff2f5;
-  --color-ok: #1a7f37;
-  --color-ok-soft: #dafbe1;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-field: var(--field);
+  --color-link: var(--link);
+  --color-interactive: var(--interactive);
+  --color-highlight: var(--highlight);
+  --color-selected: var(--selected);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-blocker: var(--blocker);
+  --color-blocker-soft: var(--blocker-soft);
+  --color-shouldfix: var(--shouldfix);
+  --color-shouldfix-soft: var(--shouldfix-soft);
+  --color-human: var(--human);
+  --color-human-soft: var(--human-soft);
+  --color-nit: var(--nit);
+  --color-nit-soft: var(--nit-soft);
+  --color-playing: var(--playing);
+  --color-overlay: var(--overlay);
+  --color-media: var(--media);
+  --color-media-foreground: var(--media-foreground);
+
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
 }
 
-html {
-  color-scheme: light;
-}
-
-body {
-  background: var(--color-canvas);
-  color: var(--color-fg);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Carbon body-compact-01: 14/18, 0.16px tracking. */
+  body {
+    @apply bg-background text-foreground;
+    font-size: 14px;
+    line-height: 1.2857;
+    letter-spacing: 0.16px;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  /* Carbon focus: 2px inset-free outline in the focus token. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: -2px;
+  }
 }
 
 .md p {
@@ -68,10 +126,9 @@ body {
   font-size: 12px;
   background: var(--color-muted);
   padding: 0.1em 0.3em;
-  border-radius: 4px;
 }
 .md a {
-  color: var(--color-accent);
+  color: var(--color-link);
   text-decoration: underline;
 }
 .md strong {

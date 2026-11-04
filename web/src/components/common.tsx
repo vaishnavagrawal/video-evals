@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
+import { WarningCircleIcon } from "@phosphor-icons/react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Spinner as SpinnerIcon } from "@/components/ui/spinner";
 import type { Priority, PriorityCounts, RunStatus, Verdict } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
 
-export function cx(...c: (string | false | null | undefined)[]) {
-  return c.filter(Boolean).join(" ");
-}
+/** Class-name join that also merges conflicting Tailwind utilities (shadcn's `cn`). */
+export const cx = cn;
 
 export function fmtTime(t: number | null | undefined, digits = 1): string {
   if (t == null || !Number.isFinite(t)) return "–";
@@ -30,26 +34,18 @@ export function fmtBytes(n: number): string {
   return `${v.toFixed(v < 10 ? 1 : 0)} ${u[i]}`;
 }
 
-export const btn = {
-  base: "inline-flex items-center justify-center gap-1.5 rounded-md border px-3 h-8 text-[13px] font-medium whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-  default: "border-line bg-subtle text-fg hover:bg-muted",
-  primary: "border-[#1f883d] bg-[#1f883d] text-white hover:bg-[#1a7f37]",
-  danger: "border-line bg-subtle text-blocker hover:bg-blocker-soft",
-  small: "h-7 px-2 text-[12px]",
-};
-
-export const PRIORITY_META: Record<Priority, { label: string; fg: string; bg: string; dot: string }> = {
-  blocker: { label: "Blocker", fg: "text-blocker", bg: "bg-blocker-soft", dot: "bg-blocker" },
-  "should-fix": { label: "Should fix", fg: "text-shouldfix", bg: "bg-shouldfix-soft", dot: "bg-shouldfix" },
-  "needs-human": { label: "Needs human", fg: "text-human", bg: "bg-human-soft", dot: "bg-human" },
-  nit: { label: "Nit", fg: "text-nit", bg: "bg-nit-soft", dot: "bg-nit" },
-};
-
-export const PRIORITY_HEX: Record<Priority, string> = {
-  blocker: "#cf222e",
-  "should-fix": "#bc4c00",
-  "needs-human": "#8250df",
-  nit: "#8c959f",
+/** Tailwind classes per priority. Colors come from the theme tokens in styles/carbon-theme.css. */
+export const PRIORITY_META: Record<Priority, { label: string; fg: string; bg: string; dot: string; border: string }> = {
+  blocker: { label: "Blocker", fg: "text-blocker", bg: "bg-blocker-soft", dot: "bg-blocker", border: "border-blocker/30" },
+  "should-fix": {
+    label: "Should fix",
+    fg: "text-shouldfix",
+    bg: "bg-shouldfix-soft",
+    dot: "bg-shouldfix",
+    border: "border-shouldfix/30",
+  },
+  "needs-human": { label: "Needs human", fg: "text-human", bg: "bg-human-soft", dot: "bg-human", border: "border-human/30" },
+  nit: { label: "Nit", fg: "text-nit", bg: "bg-nit-soft", dot: "bg-nit", border: "border-nit/30" },
 };
 
 /** Small glyphs so priority is never conveyed by color alone. */
@@ -86,24 +82,18 @@ export function PriorityIcon({ p, className }: { p: Priority; className?: string
 export function PriorityBadge({ p, count, compact }: { p: Priority; count?: number; compact?: boolean }) {
   const m = PRIORITY_META[p];
   return (
-    <span
-      className={cx(
-        "inline-flex items-center gap-1 rounded-full border border-transparent px-2 h-5 text-[12px] font-medium",
-        m.fg,
-        m.bg,
-      )}
-    >
+    <Badge variant="outline" className={cx("border-transparent", m.fg, m.bg)}>
       <PriorityIcon p={p} />
       {!compact && <span>{m.label}</span>}
       {count != null && <span className="tabular-nums">{count}</span>}
       {compact && <span className="sr-only">{m.label}</span>}
-    </span>
+    </Badge>
   );
 }
 
 /** Dense counts cell: icon + number per priority, labelled for screen readers and on hover. */
 export function PriorityCountsInline({ counts }: { counts: PriorityCounts | null | undefined }) {
-  if (!counts) return <span className="text-fg-muted">–</span>;
+  if (!counts) return <span className="text-muted-foreground">–</span>;
   const order: Priority[] = ["blocker", "should-fix", "needs-human", "nit"];
   return (
     <span className="inline-flex items-center gap-2 whitespace-nowrap">
@@ -113,7 +103,7 @@ export function PriorityCountsInline({ counts }: { counts: PriorityCounts | null
           title={`${counts[p]} ${PRIORITY_META[p].label.toLowerCase()} threads`}
           className={cx(
             "inline-flex items-center gap-1 tabular-nums text-[12px]",
-            counts[p] ? PRIORITY_META[p].fg : "text-fg-muted/60",
+            counts[p] ? PRIORITY_META[p].fg : "text-muted-foreground/60",
           )}
         >
           <PriorityIcon p={p} />
@@ -138,7 +128,7 @@ const VERDICT_META: Record<Verdict, { label: string; cls: string; icon: ReactNod
   },
   approve: {
     label: "Approved",
-    cls: "text-ok border-ok/30 bg-ok-soft",
+    cls: "text-success border-success/30 bg-success-soft",
     icon: (
       <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden fill="currentColor">
         <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" />
@@ -148,57 +138,52 @@ const VERDICT_META: Record<Verdict, { label: string; cls: string; icon: ReactNod
 };
 
 export function VerdictBadge({ verdict, large }: { verdict: Verdict | null | undefined; large?: boolean }) {
-  if (!verdict) return <span className="text-fg-muted">–</span>;
+  if (!verdict) return <span className="text-muted-foreground">–</span>;
   const m = VERDICT_META[verdict];
   return (
-    <span
-      className={cx(
-        "inline-flex items-center gap-1.5 rounded-full border font-medium whitespace-nowrap",
-        large ? "px-3 h-7 text-[13px]" : "px-2 h-5 text-[12px]",
-        m.cls,
-      )}
-    >
+    <Badge variant="outline" className={cx(large && "h-7 px-3 text-sm [&>svg]:size-3.5!", m.cls)}>
       {m.icon}
       {m.label}
-    </span>
+    </Badge>
   );
 }
 
 export function StatusBadge({ status }: { status: RunStatus }) {
-  const meta: Record<RunStatus, { label: string; cls: string }> = {
-    queued: { label: "Queued", cls: "text-fg-muted border-line bg-subtle" },
-    running: { label: "Running", cls: "text-accent border-accent/30 bg-accent-soft" },
-    succeeded: { label: "Done", cls: "text-fg border-line bg-canvas" },
-    failed: { label: "Failed", cls: "text-blocker border-blocker/30 bg-blocker-soft" },
+  const meta: Record<RunStatus, { label: string; cls: string; dot: string }> = {
+    queued: { label: "Queued", cls: "text-muted-foreground bg-muted", dot: "bg-nit" },
+    running: { label: "Running", cls: "text-link border-interactive/30 bg-highlight", dot: "bg-interactive animate-pulse" },
+    succeeded: { label: "Done", cls: "text-success border-success/30 bg-success-soft", dot: "bg-success" },
+    failed: { label: "Failed", cls: "text-blocker border-blocker/30 bg-blocker-soft", dot: "bg-blocker" },
   };
   const m = meta[status] ?? meta.queued;
   return (
-    <span className={cx("inline-flex items-center gap-1.5 rounded-full border px-2 h-5 text-[12px] font-medium", m.cls)}>
-      {status === "running" && <span className="size-1.5 rounded-full bg-accent animate-pulse" aria-hidden />}
+    <Badge variant="outline" className={m.cls}>
+      <span className={cx("size-1.5 rounded-full", m.dot)} aria-hidden />
       {m.label}
-    </span>
+    </Badge>
   );
 }
 
 export function LlmMark({ model }: { model?: string | null }) {
   const label = model ? `LLM-written · ${model}` : "LLM-written";
   return (
-    <span
-      className="inline-flex items-center gap-1 rounded border border-line px-1.5 h-[18px] text-[11px] font-medium text-fg-muted bg-subtle"
+    <Badge
+      variant="outline"
+      className="h-[18px] px-1.5 text-[11px] text-muted-foreground bg-muted"
       title={`Written by ${model ? `the LLM ${model}` : "an LLM"} from the findings. Wording can vary between runs; check the member findings.`}
     >
       <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden fill="currentColor">
         <path d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.492 7.492 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.492 7.492 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.492 7.492 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.492 7.492 0 0 0 4.464-4.464Z" />
       </svg>
       {label}
-    </span>
+    </Badge>
   );
 }
 
 export function Spinner({ label = "Loading" }: { label?: string }) {
   return (
-    <span role="status" className="inline-flex items-center gap-2 text-fg-muted">
-      <span className="size-3.5 rounded-full border-2 border-line border-t-accent animate-spin" aria-hidden />
+    <span role="status" className="inline-flex items-center gap-2 text-muted-foreground">
+      <SpinnerIcon role="presentation" aria-hidden className="text-interactive" />
       {label}
     </span>
   );
@@ -206,8 +191,9 @@ export function Spinner({ label = "Loading" }: { label?: string }) {
 
 export function ErrorBox({ children }: { children: ReactNode }) {
   return (
-    <div role="alert" className="rounded-md border border-blocker/30 bg-blocker-soft px-3 py-2 text-[13px] text-blocker">
-      {children}
-    </div>
+    <Alert variant="destructive" className="border-blocker/30 bg-blocker-soft text-blocker">
+      <WarningCircleIcon />
+      <AlertDescription className="text-blocker">{children}</AlertDescription>
+    </Alert>
   );
 }

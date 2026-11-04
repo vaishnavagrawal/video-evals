@@ -1,6 +1,12 @@
 "use client";
+import { CaretLeftIcon, CaretRightIcon, PauseIcon, PlayIcon } from "@phosphor-icons/react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { MediaUrl } from "@/lib/api/types";
-import { btn, cx, fmtTime } from "../ui";
+import { cx, fmtTime } from "../common";
 import { useSync, type SyncController } from "./sync";
 
 function Speaker({ on }: { on: boolean }) {
@@ -31,31 +37,29 @@ function Player({
   const audible = audio === kind;
   return (
     <figure className="min-w-0">
-      <figcaption className="flex items-center gap-2 h-7 text-[12px]">
-        <span className="font-semibold text-[13px]">{label}</span>
-        <span className="text-fg-muted truncate">{media?.filename ?? ""}</span>
-        <button
-          type="button"
-          onClick={() => ctl.setAudio(kind)}
-          aria-pressed={audible}
-          className={cx(
-            "ml-auto inline-flex items-center gap-1 rounded px-1.5 h-5 border text-[11px]",
-            audible ? "border-accent/40 bg-accent-soft text-accent" : "border-line text-fg-muted hover:bg-subtle",
-          )}
-          title={audible ? `Hearing the ${label.toLowerCase()} audio` : `Switch audio to the ${label.toLowerCase()}`}
-        >
-          <Speaker on={audible} />
-          {audible ? "Audio on" : "Muted"}
-        </button>
+      <figcaption className="flex items-center gap-2 h-8 text-xs">
+        <span className="font-semibold text-sm">{label}</span>
+        <span className="text-muted-foreground truncate">{media?.filename ?? ""}</span>
+        <Badge asChild variant="outline" className={cx("ml-auto cursor-pointer", audible ? "border-interactive/40 bg-highlight text-link" : "text-muted-foreground hover:bg-accent")}>
+          <button
+            type="button"
+            onClick={() => ctl.setAudio(kind)}
+            aria-pressed={audible}
+            title={audible ? `Hearing the ${label.toLowerCase()} audio` : `Switch audio to the ${label.toLowerCase()}`}
+          >
+            <Speaker on={audible} />
+            {audible ? "Audio on" : "Muted"}
+          </button>
+        </Badge>
       </figcaption>
-      <div className="relative aspect-video bg-black rounded overflow-hidden">
+      <div className="relative aspect-video bg-media overflow-hidden">
         {media === undefined ? (
-          <div className="absolute inset-0 flex items-center justify-center text-[12px] text-white/60">Loading…</div>
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-media-foreground">Loading…</div>
         ) : media === null ? (
-          <div className="absolute inset-0 flex items-center justify-center text-[12px] text-white/60">No {label.toLowerCase()} file</div>
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-media-foreground">No {label.toLowerCase()} file</div>
         ) : media.kind === "audio" ? (
           <>
-            <div className="absolute inset-0 flex items-center justify-center text-[12px] text-white/60">Audio only</div>
+            <div className="absolute inset-0 flex items-center justify-center text-xs text-media-foreground">Audio only</div>
             <video ref={(el) => ctl.attach(kind, el)} src={media.url} preload="metadata" playsInline className="hidden" />
           </>
         ) : (
@@ -88,13 +92,13 @@ export function Players({
   onNext: () => void;
 }) {
   return (
-    <section aria-label="Players">
+    <Card aria-label="Players" role="region" className="gap-0 p-3">
       <div className={cx("grid gap-3", original !== null ? "grid-cols-2" : "grid-cols-1")}>
         {original !== null && <Player label="Original" media={original} kind="original" ctl={ctl} />}
         <Player label="Dub" media={dub} kind="dub" ctl={ctl} />
       </div>
       <Transport ctl={ctl} onPrev={onPrev} onNext={onNext} />
-    </section>
+    </Card>
   );
 }
 
@@ -104,31 +108,32 @@ function Transport({ ctl, onPrev, onNext }: { ctl: SyncController; onPrev: () =>
   const duration = useSync(ctl, (s) => s.duration || ctl.fallbackDuration);
   const rate = useSync(ctl, (s) => s.rate);
   return (
-    <div className="flex items-center gap-2 mt-2">
-      <button
-        type="button"
+    <div className="flex items-center gap-2 mt-3">
+      <Button
         onClick={() => ctl.toggle()}
-        className={cx(btn.base, btn.default, "w-[72px]")}
+        className="w-[84px]"
         aria-label={playing ? "Pause both videos" : "Play both videos"}
       >
-        {playing ? (
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="currentColor">
-            <path d="M4 2h3v12H4zM9 2h3v12H9z" />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="currentColor">
-            <path d="M4 2.5v11a.5.5 0 0 0 .77.42l8.5-5.5a.5.5 0 0 0 0-.84l-8.5-5.5A.5.5 0 0 0 4 2.5Z" />
-          </svg>
-        )}
+        {playing ? <PauseIcon weight="fill" data-icon="inline-start" /> : <PlayIcon weight="fill" data-icon="inline-start" />}
         {playing ? "Pause" : "Play"}
-      </button>
-      <button type="button" onClick={onPrev} className={cx(btn.base, btn.default, "px-2")} aria-label="Previous thread (k)" title="Previous thread (k)">
-        ‹
-      </button>
-      <button type="button" onClick={onNext} className={cx(btn.base, btn.default, "px-2")} aria-label="Next thread (j)" title="Next thread (j)">
-        ›
-      </button>
-      <span className="font-mono text-[12px] tabular-nums text-fg-muted whitespace-nowrap">
+      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="outline" size="icon" onClick={onPrev} aria-label="Previous thread (k)">
+            <CaretLeftIcon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Previous thread (k)</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="outline" size="icon" onClick={onNext} aria-label="Next thread (j)">
+            <CaretRightIcon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Next thread (j)</TooltipContent>
+      </Tooltip>
+      <span className="font-mono text-xs tabular-nums text-muted-foreground whitespace-nowrap">
         {fmtTime(t)} / {fmtTime(duration)}
       </span>
       <input
@@ -140,23 +145,20 @@ function Transport({ ctl, onPrev, onNext }: { ctl: SyncController; onPrev: () =>
         onChange={(e) => ctl.seek(Number(e.target.value))}
         aria-label="Seek"
         aria-valuetext={fmtTime(t)}
-        className="flex-1 min-w-[80px] accent-[#0969da]"
+        className="flex-1 min-w-[80px] accent-interactive"
       />
-      <label className="sr-only" htmlFor="rate">
-        Playback speed
-      </label>
-      <select
-        id="rate"
-        value={rate}
-        onChange={(e) => ctl.setRate(Number(e.target.value))}
-        className="h-8 rounded-md border border-line bg-canvas px-1.5 text-[12px]"
-      >
-        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((r) => (
-          <option key={r} value={r}>
-            {r}×
-          </option>
-        ))}
-      </select>
+      <Select value={String(rate)} onValueChange={(v) => ctl.setRate(Number(v))}>
+        <SelectTrigger className="w-[76px]" aria-label="Playback speed">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {[0.5, 0.75, 1, 1.25, 1.5, 2].map((r) => (
+            <SelectItem key={r} value={String(r)}>
+              {r}×
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

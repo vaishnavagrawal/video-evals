@@ -1,0 +1,214 @@
+/*
+ * IBM Carbon Design System theme for vreview.
+ *
+ * This is the only file that holds color values. Components use Tailwind utilities generated from the role
+ * tokens at the bottom (bg-card, text-muted-foreground, text-blocker, ...), never raw colors.
+ *
+ *   1. Carbon tokens (--cds-*), per theme. Light = Carbon "g10", dark = Carbon "g100".
+ *      Values are copied from @carbon/themes v11 (themes.g10 / themes.g100, buttonTokens, tagTokens, statusTokens).
+ *   2. Role tokens: the shadcn/ui variables and vreview's own semantic tokens, defined once in terms of (1).
+ *
+ * To re-skin the app, change section 1 only.
+ */
+
+/* ---------------------------------------------------------------------------------------------------------------
+ * 1. Carbon tokens
+ * ------------------------------------------------------------------------------------------------------------- */
+
+:root {
+  /* Surfaces */
+  --cds-background: #f4f4f4;
+  --cds-layer-01: #ffffff;
+  --cds-layer-02: #f4f4f4;
+  --cds-layer-hover-01: #e8e8e8;
+  --cds-layer-selected-01: #e0e0e0;
+  --cds-layer-accent-01: #e0e0e0;
+  --cds-layer-accent-hover-01: #d1d1d1;
+  --cds-field-01: #ffffff;
+  --cds-overlay: rgba(0, 0, 0, 0.6);
+
+  /* Borders */
+  --cds-border-subtle-00: #c6c6c6;
+  --cds-border-subtle-01: #e0e0e0;
+  --cds-border-strong-01: #8d8d8d;
+  --cds-border-interactive: #0f62fe;
+
+  /* Text */
+  --cds-text-primary: #161616;
+  --cds-text-secondary: #525252;
+  --cds-text-helper: #6f6f6f;
+  --cds-text-on-color: #ffffff;
+  --cds-text-error: #da1e28;
+  --cds-link-primary: #0f62fe;
+
+  /* Interactive */
+  --cds-interactive: #0f62fe;
+  --cds-focus: #0f62fe;
+  --cds-highlight: #d0e2ff;
+  --cds-button-primary: #0f62fe;
+  --cds-button-primary-hover: #0050e6;
+  --cds-button-secondary: #393939;
+  --cds-button-secondary-hover: #474747;
+  --cds-button-danger: #da1e28;
+
+  /* Support (status) */
+  --cds-support-error: #da1e28;
+  --cds-support-success: #24a148;
+  --cds-support-warning: #f1c21b;
+  --cds-support-info: #0043ce;
+
+  /* Review priorities. Text/icon colors are Carbon palette step 60 (passes 4.5:1 on layer-01), backgrounds are
+     the Carbon tag backgrounds (step 20). Orange has no Carbon tag, so it uses the same steps. */
+  --cds-priority-blocker: #da1e28; /* red 60 */
+  --cds-priority-blocker-soft: #ffd7d9; /* tag red bg */
+  --cds-priority-should-fix: #ba4e00; /* orange 60 */
+  --cds-priority-should-fix-soft: #ffd9be; /* orange 20 */
+  --cds-priority-needs-human: #8a3ffc; /* purple 60 */
+  --cds-priority-needs-human-soft: #e8daff; /* tag purple bg */
+  --cds-priority-nit: #6f6f6f; /* gray 60 */
+  --cds-priority-nit-soft: #e0e0e0; /* tag gray bg */
+  --cds-success-text: #198038; /* green 60 */
+  --cds-success-soft: #a7f0ba; /* tag green bg */
+  --cds-playing-soft: #fcf4d6; /* yellow 10, the row under the playhead */
+
+  /* Categorical data-viz palette (Carbon light, 5-color option 1) */
+  --cds-chart-1: #6929c4;
+  --cds-chart-2: #1192e8;
+  --cds-chart-3: #005d5d;
+  --cds-chart-4: #9f1853;
+  --cds-chart-5: #fa4d56;
+
+  /* Video letterbox, black in both themes */
+  --cds-media-surface: #000000;
+  --cds-media-text: rgba(255, 255, 255, 0.6);
+
+  color-scheme: light;
+}
+
+.dark {
+  --cds-background: #161616;
+  --cds-layer-01: #262626;
+  --cds-layer-02: #393939;
+  --cds-layer-hover-01: #333333;
+  --cds-layer-selected-01: #393939;
+  --cds-layer-accent-01: #393939;
+  --cds-layer-accent-hover-01: #474747;
+  --cds-field-01: #262626;
+  --cds-overlay: rgba(0, 0, 0, 0.6);
+
+  --cds-border-subtle-00: #393939;
+  --cds-border-subtle-01: #525252;
+  --cds-border-strong-01: #6f6f6f;
+  --cds-border-interactive: #4589ff;
+
+  --cds-text-primary: #f4f4f4;
+  --cds-text-secondary: #c6c6c6;
+  --cds-text-helper: #a8a8a8;
+  --cds-text-on-color: #ffffff;
+  --cds-text-error: #ff8389;
+  --cds-link-primary: #78a9ff;
+
+  --cds-interactive: #4589ff;
+  --cds-focus: #ffffff;
+  --cds-highlight: #001d6c;
+  --cds-button-primary: #0f62fe;
+  --cds-button-primary-hover: #0050e6;
+  --cds-button-secondary: #6f6f6f;
+  --cds-button-secondary-hover: #5e5e5e;
+  --cds-button-danger: #da1e28;
+
+  --cds-support-error: #fa4d56;
+  --cds-support-success: #42be65;
+  --cds-support-warning: #f1c21b;
+  --cds-support-info: #4589ff;
+
+  /* Step 40 text/icons, step 70-80 tag backgrounds (Carbon g100 tag pattern). */
+  --cds-priority-blocker: #ff8389; /* red 40 */
+  --cds-priority-blocker-soft: #520408; /* red 90 */
+  --cds-priority-should-fix: #ff832b; /* orange 40 */
+  --cds-priority-should-fix-soft: #3e1a00; /* orange 90 */
+  --cds-priority-needs-human: #be95ff; /* purple 40 */
+  --cds-priority-needs-human-soft: #31135e; /* purple 90 */
+  --cds-priority-nit: #a8a8a8; /* gray 40 */
+  --cds-priority-nit-soft: #393939; /* gray 80 */
+  --cds-success-text: #42be65; /* green 40 */
+  --cds-success-soft: #022d0d; /* green 90 */
+  --cds-playing-soft: #302400; /* yellow 90 */
+
+  /* Categorical data-viz palette (Carbon dark, 5-color option 1) */
+  --cds-chart-1: #8a3ffc;
+  --cds-chart-2: #33b1ff;
+  --cds-chart-3: #007d79;
+  --cds-chart-4: #ff7eb6;
+  --cds-chart-5: #fa4d56;
+
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------
+ * 2. Role tokens (shadcn/ui + vreview), shared by both themes
+ * ------------------------------------------------------------------------------------------------------------- */
+
+:root {
+  /* shadcn/ui */
+  --background: var(--cds-background);
+  --foreground: var(--cds-text-primary);
+  --card: var(--cds-layer-01);
+  --card-foreground: var(--cds-text-primary);
+  --popover: var(--cds-layer-01);
+  --popover-foreground: var(--cds-text-primary);
+  --primary: var(--cds-button-primary);
+  --primary-hover: var(--cds-button-primary-hover);
+  --primary-foreground: var(--cds-text-on-color);
+  --secondary: var(--cds-layer-accent-01);
+  --secondary-hover: var(--cds-layer-accent-hover-01);
+  --secondary-foreground: var(--cds-text-primary);
+  --muted: var(--cds-layer-02);
+  --muted-foreground: var(--cds-text-secondary);
+  --accent: var(--cds-layer-hover-01);
+  --accent-foreground: var(--cds-text-primary);
+  --destructive: var(--cds-support-error);
+  --border: var(--cds-border-subtle-01);
+  --input: var(--cds-border-strong-01);
+  --ring: var(--cds-focus);
+  --chart-1: var(--cds-chart-1);
+  --chart-2: var(--cds-chart-2);
+  --chart-3: var(--cds-chart-3);
+  --chart-4: var(--cds-chart-4);
+  --chart-5: var(--cds-chart-5);
+  --sidebar: var(--cds-layer-01);
+  --sidebar-foreground: var(--cds-text-secondary);
+  --sidebar-primary: var(--cds-button-primary);
+  --sidebar-primary-foreground: var(--cds-text-on-color);
+  --sidebar-accent: var(--cds-layer-hover-01);
+  --sidebar-accent-foreground: var(--cds-text-primary);
+  --sidebar-border: var(--cds-border-subtle-01);
+  --sidebar-ring: var(--cds-focus);
+
+  /* Carbon uses square corners on buttons, fields, tiles and menus. */
+  --radius: 0rem;
+
+  /* vreview */
+  --border-subtle: var(--cds-border-subtle-01);
+  --border-strong: var(--cds-border-strong-01);
+  --field: var(--cds-field-01);
+  --link: var(--cds-link-primary);
+  --interactive: var(--cds-interactive);
+  --highlight: var(--cds-highlight);
+  --selected: var(--cds-layer-selected-01);
+  --success: var(--cds-success-text);
+  --success-soft: var(--cds-success-soft);
+  --warning: var(--cds-support-warning);
+  --blocker: var(--cds-priority-blocker);
+  --blocker-soft: var(--cds-priority-blocker-soft);
+  --shouldfix: var(--cds-priority-should-fix);
+  --shouldfix-soft: var(--cds-priority-should-fix-soft);
+  --human: var(--cds-priority-needs-human);
+  --human-soft: var(--cds-priority-needs-human-soft);
+  --nit: var(--cds-priority-nit);
+  --nit-soft: var(--cds-priority-nit-soft);
+  --playing: var(--cds-playing-soft);
+  --overlay: var(--cds-overlay);
+  --media: var(--cds-media-surface);
+  --media-foreground: var(--cds-media-text);
+}

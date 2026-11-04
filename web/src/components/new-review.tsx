@@ -3,7 +3,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { api, type MediaRole } from "@/lib/api";
 import { initialUpload, uploadFile, type UploadState } from "@/lib/upload";
-import { ErrorBox, btn, cx, fmtBytes } from "./ui";
+import { ArrowCounterClockwiseIcon, FileAudioIcon, FileVideoIcon, ImageIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ErrorBox, cx, fmtBytes } from "./common";
+
+/** Radix Select has no empty value, so "auto-detect" uses a sentinel that maps to "". */
+const AUTO = "auto";
 
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const IMAGE_EXT = /\.(png|jpe?g|webp)$/i;
@@ -86,9 +94,9 @@ function DropZone({
         onFiles([...e.dataTransfer.files]);
       }}
       className={cx(
-        "rounded-md border border-dashed text-center transition-colors",
-        compact ? "py-4" : "py-9",
-        over ? "border-accent bg-accent-soft" : "border-line bg-subtle",
+        "border border-dashed text-center transition-colors",
+        compact ? "py-5" : "py-10",
+        over ? "border-interactive bg-highlight" : "border-border-strong bg-muted",
       )}
     >
       <input
@@ -104,18 +112,19 @@ function DropZone({
           e.target.value = "";
         }}
       />
-      <p className="text-[13px]">
+      {!compact && <UploadSimpleIcon className="mx-auto mb-2 size-6 text-muted-foreground" aria-hidden />}
+      <p className="text-sm">
         Drag and drop here, or{" "}
         <button
           type="button"
           aria-describedby={hintId}
-          className="text-accent font-medium hover:underline"
+          className="text-link font-medium hover:underline"
           onClick={() => input.current?.click()}
         >
           {label}
         </button>
       </p>
-      <p id={hintId} className="text-[12px] text-fg-muted mt-0.5">
+      <p id={hintId} className="text-xs text-muted-foreground mt-1">
         {hint}
       </p>
     </div>
@@ -130,7 +139,7 @@ function ProgressRow({ u }: { u: UploadState }) {
   return (
     <div className="mt-1.5">
       <div
-        className="h-1.5 rounded-full bg-muted overflow-hidden"
+        className="h-1 bg-border-subtle overflow-hidden"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -140,12 +149,12 @@ function ProgressRow({ u }: { u: UploadState }) {
         <div
           className={cx(
             "h-full transition-[width] duration-150",
-            u.status === "failed" ? "bg-blocker" : u.status === "done" ? "bg-ok" : u.status === "cancelled" ? "bg-nit" : "bg-accent",
+            u.status === "failed" ? "bg-blocker" : u.status === "done" ? "bg-success" : u.status === "cancelled" ? "bg-nit" : "bg-interactive",
           )}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="flex justify-between text-[12px] text-fg-muted mt-0.5 tabular-nums">
+      <div className="flex justify-between text-xs text-muted-foreground mt-0.5 tabular-nums">
         <span>
           {u.status === "done"
             ? "Uploaded"
@@ -159,7 +168,7 @@ function ProgressRow({ u }: { u: UploadState }) {
         </span>
         <span>{pct}%</span>
       </div>
-      {u.status === "failed" && u.error && <p className="text-[12px] text-blocker mt-0.5">{u.error}</p>}
+      {u.status === "failed" && u.error && <p className="text-xs text-blocker mt-0.5">{u.error}</p>}
     </div>
   );
 }
@@ -184,62 +193,56 @@ function FileRow({
     <li className="flex items-start gap-3 px-3 py-2.5">
       {item.preview ? (
         // eslint-disable-next-line @next/next/no-img-element -- local object URL thumbnail
-        <img src={item.preview} alt="" className="size-12 rounded border border-line object-cover bg-muted" />
+        <img src={item.preview} alt="" className="size-12 border object-cover bg-muted" />
       ) : (
-        <span className="size-12 rounded border border-line bg-subtle inline-flex items-center justify-center text-[10px] font-semibold uppercase text-fg-muted">
-          {item.kind}
+        <span className="size-12 border bg-muted inline-flex items-center justify-center text-muted-foreground" title={item.kind}>
+          {item.kind === "audio" ? <FileAudioIcon className="size-5" /> : item.kind === "image" ? <ImageIcon className="size-5" /> : <FileVideoIcon className="size-5" />}
+          <span className="sr-only">{item.kind}</span>
         </span>
       )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium truncate">{item.file.name}</span>
-          <span className="text-[12px] text-fg-muted shrink-0">{fmtBytes(item.file.size)}</span>
+          <span className="text-xs text-muted-foreground shrink-0">{fmtBytes(item.file.size)}</span>
         </div>
         {item.kind === "image" && (
-          <p className="text-[12px] text-fg-muted">Reference image: stored with the review, not used by the dubbing evaluator yet.</p>
+          <p className="text-xs text-muted-foreground">Reference image: stored with the review, not used by the dubbing evaluator yet.</p>
         )}
         <ProgressRow u={item.upload} />
       </div>
       {roleOptions && onRole && (
         <div className="shrink-0">
-          <label htmlFor={roleId} className="sr-only">
-            Role for {item.file.name}
-          </label>
-          <select
-            id={roleId}
-            value={item.role}
-            disabled={locked || roleOptions.length < 2}
-            onChange={(e) => onRole(e.target.value as MediaRole)}
-            className="h-7 rounded-md border border-line bg-canvas px-1.5 text-[12px]"
-          >
-            {roleOptions.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+          <Select value={item.role} disabled={locked || roleOptions.length < 2} onValueChange={(v) => onRole(v as MediaRole)}>
+            <SelectTrigger id={roleId} size="sm" aria-label={`Role for ${item.file.name}`} className="bg-field">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {roleOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
       {item.upload.status === "failed" && onRetry && !locked && (
-        <button type="button" className={cx(btn.base, btn.default, btn.small)} onClick={onRetry}>
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          <ArrowCounterClockwiseIcon data-icon="inline-start" />
           Retry failed parts
-        </button>
+        </Button>
       )}
-      <button
-        type="button"
-        onClick={onRemove}
-        disabled={locked}
-        className={cx(btn.base, btn.default, btn.small)}
-        aria-label={`Remove ${item.file.name}`}
-      >
+      <Button variant="ghost" size="sm" onClick={onRemove} disabled={locked} aria-label={`Remove ${item.file.name}`}>
+        <TrashIcon data-icon="inline-start" />
         Remove
-      </button>
+      </Button>
     </li>
   );
 }
 
 export function NewReview() {
   const router = useRouter();
+  const formId = useId();
   const [candidate, setCandidate] = useState<Item | null>(null);
   const [refs, setRefs] = useState<Item[]>([]);
   const [src, setSrc] = useState("");
@@ -367,27 +370,44 @@ export function NewReview() {
   }
 
   const originals = refs.filter((r) => r.role === "original").length;
-  const select = "w-full h-8 rounded-md border border-line bg-canvas px-2 text-[13px]";
+  const langSelect = (id: string, label: string, value: string, set: (v: string) => void) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <Select value={value || AUTO} onValueChange={(v) => set(v === AUTO ? "" : v)} disabled={locked}>
+        <SelectTrigger id={id} className="w-full bg-field">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={AUTO}>Auto-detect</SelectItem>
+          {LANGUAGES.map(([c, n]) => (
+            <SelectItem key={c} value={c}>
+              {n} ({c})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-[1180px] px-4 py-5">
-      <h1 className="text-[18px] font-semibold mb-1">New review</h1>
-      <p className="text-fg-muted mb-4">
+    <form onSubmit={submit} className="w-full max-w-[1180px] px-4 py-6 lg:px-6">
+      <h1 className="text-2xl font-normal mb-1">New review</h1>
+      <p className="text-muted-foreground mb-6">
         Upload the dubbed video and its original. Files go straight to storage; the review starts when all uploads finish.
       </p>
 
       <div className="grid gap-5 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-5 min-w-0">
-          <section aria-labelledby="cand-h" className="rounded-md border border-line">
-            <header className="px-3 h-10 flex items-center border-b border-line bg-subtle rounded-t-md">
-              <h2 id="cand-h" className="font-semibold text-[14px]">
-                Candidate <span className="font-normal text-fg-muted">(required)</span>
-              </h2>
-              <span className="ml-2 text-[12px] text-fg-muted">The dubbed video to review</span>
-            </header>
-            <div className="p-3">
+          <Card role="region" aria-labelledby="cand-h">
+            <CardHeader>
+              <CardTitle id="cand-h" role="heading" aria-level={2}>
+                Candidate <span className="font-normal text-muted-foreground">(required)</span>
+              </CardTitle>
+              <CardDescription>The dubbed video to review</CardDescription>
+            </CardHeader>
+            <CardContent>
               {candidate ? (
-                <ul className="rounded-md border border-line">
+                <ul className="border">
                   <FileRow
                     item={candidate}
                     locked={locked}
@@ -406,19 +426,19 @@ export function NewReview() {
                   onFiles={addCandidate}
                 />
               )}
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
-          <section aria-labelledby="refs-h" className="rounded-md border border-line">
-            <header className="px-3 h-10 flex items-center border-b border-line bg-subtle rounded-t-md">
-              <h2 id="refs-h" className="font-semibold text-[14px]">
+          <Card role="region" aria-labelledby="refs-h">
+            <CardHeader>
+              <CardTitle id="refs-h" role="heading" aria-level={2}>
                 References
-              </h2>
-              <span className="ml-2 text-[12px] text-fg-muted">The original video, plus optional reference images</span>
-            </header>
-            <div className="p-3 space-y-3">
+              </CardTitle>
+              <CardDescription>The original video, plus optional reference images</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
               {refs.length > 0 && (
-                <ul className="rounded-md border border-line divide-y divide-line-soft">
+                <ul className="border divide-y divide-border-subtle">
                   {refs.map((r) => (
                     <FileRow
                       key={r.id}
@@ -443,12 +463,12 @@ export function NewReview() {
                 </ul>
               )}
               {originals > 1 && (
-                <p className="text-[12px] text-shouldfix">
+                <p className="text-xs text-shouldfix">
                   More than one file is marked Original. The dubbing evaluator compares against one original; mark the others as Reference.
                 </p>
               )}
               {!refs.some((r) => r.role === "original") && (
-                <p className="text-[12px] text-fg-muted">
+                <p className="text-xs text-muted-foreground">
                   Without an original, the dubbing evaluator can only use the tracks inside the candidate file.
                 </p>
               )}
@@ -460,8 +480,8 @@ export function NewReview() {
                 accept="video/*,audio/*,image/png,image/jpeg,image/webp"
                 onFiles={addRefs}
               />
-            </div>
-          </section>
+            </CardContent>
+          </Card>
           {rejected.length > 0 && (
             <ErrorBox>
               <ul>
@@ -474,60 +494,42 @@ export function NewReview() {
         </div>
 
         <aside className="space-y-4">
-          <section aria-labelledby="brief-h" className="rounded-md border border-line">
-            <header className="px-3 h-10 flex items-center border-b border-line bg-subtle rounded-t-md">
-              <h2 id="brief-h" className="font-semibold text-[14px]">
+          <Card role="region" aria-labelledby="brief-h">
+            <CardHeader>
+              <CardTitle id="brief-h" role="heading" aria-level={2}>
                 Brief
-              </h2>
-            </header>
-            <div className="p-3 space-y-3">
-              <label className="block">
-                <span className="block text-[13px] font-medium mb-1">Source language</span>
-                <select className={select} value={src} onChange={(e) => setSrc(e.target.value)} disabled={locked}>
-                  <option value="">Auto-detect</option>
-                  {LANGUAGES.map(([c, n]) => (
-                    <option key={c} value={c}>
-                      {n} ({c})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className="block text-[13px] font-medium mb-1">Target language</span>
-                <select className={select} value={tgt} onChange={(e) => setTgt(e.target.value)} disabled={locked}>
-                  <option value="">Auto-detect</option>
-                  {LANGUAGES.map(([c, n]) => (
-                    <option key={c} value={c}>
-                      {n} ({c})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="text-[12px] text-fg-muted">Leave on auto-detect unless detection gets it wrong.</p>
-            </div>
-          </section>
+              </CardTitle>
+              <CardDescription>Languages of the original and the dub</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {langSelect(`${formId}-src`, "Source language", src, setSrc)}
+              {langSelect(`${formId}-tgt`, "Target language", tgt, setTgt)}
+              <p className="text-xs text-muted-foreground">Leave on auto-detect unless detection gets it wrong.</p>
+            </CardContent>
+          </Card>
 
           {error && <ErrorBox>{error}</ErrorBox>}
 
           <div className="flex gap-2">
             {locked ? (
               <>
-                <button type="button" disabled className={cx(btn.base, btn.primary, "flex-1")}>
+                <Button type="button" size="lg" disabled className="flex-1">
                   {phase === "creating" ? "Starting review…" : "Uploading…"}
-                </button>
+                </Button>
                 {phase === "uploading" && (
-                  <button type="button" onClick={cancel} className={cx(btn.base, btn.danger)}>
+                  <Button type="button" size="lg" variant="destructive" onClick={cancel}>
                     Cancel
-                  </button>
+                  </Button>
                 )}
               </>
             ) : (
-              <button type="submit" disabled={!candidate} className={cx(btn.base, btn.primary, "flex-1")}>
+              <Button type="submit" size="lg" disabled={!candidate} className="flex-1">
+                <UploadSimpleIcon data-icon="inline-start" />
                 {phase === "failed" ? "Retry and start review" : "Upload and start review"}
-              </button>
+              </Button>
             )}
           </div>
-          {!candidate && <p className="text-[12px] text-fg-muted">Add a candidate video to continue.</p>}
+          {!candidate && <p className="text-xs text-muted-foreground">Add a candidate video to continue.</p>}
         </aside>
       </div>
     </form>

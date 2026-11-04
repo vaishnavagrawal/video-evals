@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { FilmSlateIcon } from "@phosphor-icons/react/dist/ssr";
 import { isSignUpAllowed } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
@@ -12,13 +13,18 @@ async function LoginPanel() {
 
 export default function LoginPage() {
   return (
-    <div className="flex-1 flex items-start justify-center pt-24 px-4 bg-subtle">
-      <div className="w-full max-w-[340px]">
-        <h1 className="text-center text-[20px] font-semibold mb-1">vreview</h1>
-        <p className="text-center text-fg-muted mb-5">Review dubbed video like code</p>
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <div className="flex items-center gap-2 self-center font-medium">
+          <span className="flex size-7 items-center justify-center bg-primary text-primary-foreground">
+            <FilmSlateIcon className="size-4" weight="bold" />
+          </span>
+          <span className="text-lg font-semibold">vreview</span>
+        </div>
         <Suspense>
           <LoginPanel />
         </Suspense>
+        <p className="text-center text-xs text-muted-foreground">Review dubbed and AI-generated video like code.</p>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { PRIORITIES, type Priority, type Thread } from "@/lib/api/types";
-import { PRIORITY_HEX, PRIORITY_META, cx, fmtTime } from "../ui";
+import { PRIORITY_META, cx, fmtTime } from "../common";
 import { useSync, type SyncController } from "./sync";
 
 const LANE_H = 18;
@@ -18,10 +18,10 @@ function Playhead({ ctl, duration }: { ctl: SyncController; duration: number }) 
   return (
     <div
       aria-hidden
-      className="absolute top-0 bottom-0 w-[2px] -ml-px bg-fg pointer-events-none"
+      className="absolute top-0 bottom-0 w-[2px] -ml-px bg-foreground pointer-events-none"
       style={{ left: `${pct}%` }}
     >
-      <div className="absolute -top-1 -left-[3px] size-2 rotate-45 bg-fg" />
+      <div className="absolute -top-1 -left-[3px] size-2 rotate-45 bg-foreground" />
     </div>
   );
 }
@@ -66,7 +66,7 @@ export function Timeline({
               style={{ height: LANE_H }}
               className={cx("flex items-center gap-1 text-[11px] pr-2 whitespace-nowrap", PRIORITY_META[p].fg)}
             >
-              <span aria-hidden className="size-2 rounded-[2px]" style={{ background: PRIORITY_HEX[p] }} />
+              <span aria-hidden className={cx("size-2", PRIORITY_META[p].dot)} />
               {PRIORITY_META[p].label}
             </div>
           ))}
@@ -75,7 +75,7 @@ export function Timeline({
           {PRIORITIES.map((p, i) => (
             <div
               key={p}
-              className={cx("relative border-line-soft", i ? "border-t" : "", i % 2 ? "bg-subtle" : "bg-canvas")}
+              className={cx("relative border-border-subtle", i ? "border-t" : "", i % 2 ? "bg-muted" : "bg-card")}
               style={{ height: LANE_H }}
             >
               {byLane[p].map((t) => {
@@ -93,14 +93,14 @@ export function Timeline({
                       onSelect(t.id);
                     }}
                     className={cx(
-                      "absolute top-[3px] bottom-[3px] rounded-[2px] min-w-[3px]",
-                      sel && "ring-2 ring-accent ring-offset-1 z-10",
+                      "absolute top-[3px] bottom-[3px] min-w-[3px]",
+                      PRIORITY_META[t.priority].dot,
+                      !on && "opacity-20",
+                      sel && "ring-2 ring-interactive ring-offset-1 ring-offset-card z-10",
                     )}
                     style={{
                       left: `${(100 * t.t0) / D}%`,
                       width: `${(100 * Math.max(0, t.t1 - t.t0)) / D}%`,
-                      background: PRIORITY_HEX[t.priority],
-                      opacity: on ? 1 : 0.18,
                     }}
                   />
                 );
@@ -112,7 +112,7 @@ export function Timeline({
       </div>
       <div className="flex">
         <div style={{ width: LABEL_W }} className="shrink-0" />
-        <div className="relative flex-1 h-4 text-[10px] text-fg-muted tabular-nums">
+        <div className="relative flex-1 h-4 text-[10px] text-muted-foreground tabular-nums">
           {ticks.map((s) => (
             <span key={s} className="absolute top-0 -translate-x-1/2 first:translate-x-0" style={{ left: `${(100 * s) / D}%` }}>
               {fmtTime(s, 0)}

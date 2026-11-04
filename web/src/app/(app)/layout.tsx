@@ -3,8 +3,11 @@ import { AppShell } from "@/components/app-shell";
 
 function ShellFallback() {
   return (
-    <div className="min-h-full flex flex-col">
-      <header className="border-b border-line bg-subtle h-12" />
+    <div className="flex min-h-svh">
+      <div className="hidden w-64 shrink-0 border-r bg-sidebar md:block" />
+      <div className="flex-1">
+        <header className="h-12 border-b bg-card" />
+      </div>
     </div>
   );
 }

@@ -2,8 +2,10 @@
 import Link from "next/link";
 import { api, ApiError, type ReviewRun } from "@/lib/api";
 import { usePoll } from "@/lib/use-poll";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
 import { StageList } from "../stage-progress";
-import { ErrorBox, Spinner, StatusBadge, fmtDate } from "../ui";
+import { ErrorBox, Spinner, StatusBadge, fmtDate } from "../common";
 import { ReviewDetail } from "./review-detail";
 
 const inFlight = (r: ReviewRun) => r.status === "queued" || r.status === "running";
@@ -13,10 +15,13 @@ export function ReviewPage({ runId: id }: { runId: string }) {
 
   if (error && !data) {
     return (
-      <div className="mx-auto max-w-[1440px] px-4 py-5 space-y-3">
-        <Link href="/" className="text-accent text-[13px] hover:underline">
-          ← Reviews
-        </Link>
+      <div className="px-4 py-6 lg:px-6 space-y-3">
+        <Button asChild variant="ghost" size="sm" className="-ml-2">
+          <Link href="/">
+            <ArrowLeftIcon data-icon="inline-start" />
+            Reviews
+          </Link>
+        </Button>
         <ErrorBox>
           {error instanceof ApiError && error.status === 404 ? "Review not found." : `Could not load the review: ${error.message}`}
         </ErrorBox>
@@ -25,7 +30,7 @@ export function ReviewPage({ runId: id }: { runId: string }) {
   }
   if (!data) {
     return (
-      <div className="mx-auto max-w-[1440px] px-4 py-5">
+      <div className="px-4 py-6 lg:px-6">
         <Spinner label="Loading review" />
       </div>
     );
@@ -34,15 +39,12 @@ export function ReviewPage({ runId: id }: { runId: string }) {
   if (data.status === "succeeded" && data.review) return <ReviewDetail review={data.review} />;
 
   return (
-    <div className="mx-auto max-w-[760px] px-4 py-5">
-      <Link href="/" className="text-accent text-[13px] hover:underline">
-        ← Reviews
-      </Link>
-      <div className="flex items-center gap-3 mt-2 mb-1">
-        <h1 className="text-[18px] font-semibold font-mono">{data.run_id}</h1>
+    <div className="w-full max-w-[760px] px-4 py-6 lg:px-6">
+      <div className="flex items-center gap-3 mb-1">
+        <h1 className="text-2xl font-normal font-mono">{data.run_id}</h1>
         <StatusBadge status={data.status} />
       </div>
-      <p className="text-fg-muted mb-4 text-[13px]">
+      <p className="text-muted-foreground mb-6 text-sm">
         Created {fmtDate(data.created_at)}
         {inFlight(data) && " · this page updates every few seconds"}
       </p>

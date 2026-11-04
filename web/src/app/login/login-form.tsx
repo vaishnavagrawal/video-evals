@@ -1,8 +1,13 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ErrorBox } from "@/components/common";
 import { authClient } from "@/lib/auth-client";
-import { ErrorBox, btn, cx } from "@/components/ui";
 
 export function LoginForm({ signUpAllowed }: { signUpAllowed: boolean }) {
   const router = useRouter();
@@ -30,65 +35,73 @@ export function LoginForm({ signUpAllowed }: { signUpAllowed: boolean }) {
     else router.replace(target);
   }
 
-  const input = "w-full h-8 rounded-md border border-line bg-canvas px-2.5 text-[14px]";
-
   return (
-    <form onSubmit={submit} className="rounded-md border border-line bg-canvas p-4 space-y-3">
-      {signUpAllowed && (
-        <div role="tablist" aria-label="Account" className="grid grid-cols-2 gap-1 rounded-md bg-muted p-0.5 text-[13px]">
-          {(["signin", "signup"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              role="tab"
-              aria-selected={mode === m}
-              onClick={() => {
-                setMode(m);
+    <Card>
+      <CardHeader className="text-center">
+        <CardTitle className="text-xl font-normal">{mode === "signin" ? "Sign in" : "Create an account"}</CardTitle>
+        <CardDescription>
+          {mode === "signin" ? "Use your vreview account to continue" : "Accounts get access to every review"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={submit} className="flex flex-col gap-4">
+          {signUpAllowed && (
+            <Tabs
+              value={mode}
+              onValueChange={(v) => {
+                setMode(v as "signin" | "signup");
                 setError(null);
               }}
-              className={cx("h-7 rounded", mode === m ? "bg-canvas border border-line font-medium" : "text-fg-muted")}
             >
-              {m === "signin" ? "Sign in" : "Create account"}
-            </button>
-          ))}
-        </div>
-      )}
-      {mode === "signup" && (
-        <label className="block">
-          <span className="block text-[13px] font-medium mb-1">Name</span>
-          <input className={input} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-        </label>
-      )}
-      <label className="block">
-        <span className="block text-[13px] font-medium mb-1">Email</span>
-        <input
-          className={input}
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-        />
-      </label>
-      <label className="block">
-        <span className="block text-[13px] font-medium mb-1">Password</span>
-        <input
-          className={input}
-          type="password"
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete={mode === "signin" ? "current-password" : "new-password"}
-        />
-      </label>
-      {error && <ErrorBox>{error}</ErrorBox>}
-      <button type="submit" disabled={busy} className={cx(btn.base, btn.primary, "w-full")}>
-        {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
-      </button>
-      {!signUpAllowed && (
-        <p className="text-[13px] text-fg-muted">Sign-up is closed. Ask an administrator to create an account for you.</p>
-      )}
-    </form>
+              <TabsList aria-label="Account" className="w-full">
+                <TabsTrigger value="signin">Sign in</TabsTrigger>
+                <TabsTrigger value="signup">Create account</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+          {mode === "signup" && (
+            <div className="grid gap-1.5">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" className="bg-field" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+            </div>
+          )}
+          <div className="grid gap-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              className="bg-field"
+              type="email"
+              required
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              className="bg-field"
+              type="password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            />
+          </div>
+          {error && <ErrorBox>{error}</ErrorBox>}
+          <Button type="submit" size="lg" disabled={busy} className="w-full">
+            {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+          </Button>
+          {!signUpAllowed && (
+            <p className="text-center text-xs text-muted-foreground">
+              Sign-up is closed. Ask an administrator to create an account for you.
+            </p>
+          )}
+        </form>
+      </CardContent>
+    </Card>
   );
 }

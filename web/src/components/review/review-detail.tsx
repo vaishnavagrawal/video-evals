@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import {
@@ -14,8 +13,10 @@ import {
   type Triage,
 } from "@/lib/api/types";
 import { areaOf, priorityOf, tagsOf, triage as computeTriage } from "@/lib/triage";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Kbd } from "@/components/ui/kbd";
 import { Markdown } from "../markdown";
-import { LlmMark, PRIORITY_META, PriorityBadge, VerdictBadge, fmtDate } from "../ui";
+import { LlmMark, PRIORITY_META, PriorityBadge, VerdictBadge, cx, fmtDate } from "../common";
 import { Players } from "./players";
 import { SyncController, useSync } from "./sync";
 import { Timeline } from "./timeline";
@@ -251,18 +252,15 @@ export function ReviewDetail({ review }: { review: Review }) {
   const notOk = review.results.filter((r) => r.status !== "ok");
 
   return (
-    <div className="mx-auto max-w-[1440px] px-4 py-4">
+    <div className="px-4 py-5 lg:px-6">
       {/* Header */}
-      <div className="mb-3">
-        <Link href="/" className="text-accent text-[13px] hover:underline">
-          ← Reviews
-        </Link>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-          <h1 className="text-[18px] font-semibold">{dubRef?.filename ?? review.run_id}</h1>
+      <div className="mb-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="text-2xl font-normal">{dubRef?.filename ?? review.run_id}</h1>
           <VerdictBadge verdict={triage.verdict} large />
-          <span className="text-[13px]">
+          <span className="text-sm">
             Score <span className="font-semibold tabular-nums">{review.score == null ? "–" : review.score.toFixed(1)}</span>
-            <span className="text-fg-muted">/100</span>
+            <span className="text-muted-foreground">/100</span>
           </span>
           <span className="flex flex-wrap gap-1.5" aria-label="Thread counts">
             {PRIORITIES.map((p) => (
@@ -270,7 +268,7 @@ export function ReviewDetail({ review }: { review: Review }) {
             ))}
           </span>
         </div>
-        <p className="text-[12px] text-fg-muted mt-1">
+        <p className="text-xs text-muted-foreground mt-2">
           <span className="font-mono">{review.run_id}</span> · {fmtDate(review.created_at)}
           {origRef?.filename && <> · vs {origRef.filename}</>}
           {tracks.length > 0 && <> · track {tracks.join(", ")}</>}
@@ -289,17 +287,17 @@ export function ReviewDetail({ review }: { review: Review }) {
         </p>
       </div>
 
-      <section aria-label="Summary" className="rounded-md border border-line mb-4">
-        <div className="flex items-center gap-2 px-3 h-8 border-b border-line-soft bg-subtle rounded-t-md text-[12px]">
-          <span className="font-semibold text-[13px]">Summary</span>
-          {triage.summary_source === "llm" ? <LlmMark model={triage.summary_model} /> : <span className="text-fg-muted">from rules</span>}
+      <Card role="region" aria-label="Summary" className="mb-4 gap-0 py-0">
+        <CardHeader className="flex items-center gap-2 border-b px-4 py-0 h-10 text-xs">
+          <CardTitle className="text-sm font-semibold">Summary</CardTitle>
+          {triage.summary_source === "llm" ? <LlmMark model={triage.summary_model} /> : <span className="text-muted-foreground">from rules</span>}
           {computedLocally && (
-            <span className="text-fg-muted" title="This review was stored without triage; threads were computed in the browser with the same rules.">
+            <span className="text-muted-foreground" title="This review was stored without triage; threads were computed in the browser with the same rules.">
               · triage computed in browser
             </span>
           )}
-        </div>
-        <div className="px-3 py-2 text-[13px]">
+        </CardHeader>
+        <CardContent className="px-4 py-3 text-sm">
           <Markdown>{triage.summary}</Markdown>
           {(triage.llm_warnings.length > 0 || warnings.length > 0 || notOk.length > 0) && (
             <details className="mt-2 text-[12px] text-shouldfix">
@@ -322,12 +320,12 @@ export function ReviewDetail({ review }: { review: Review }) {
               </ul>
             </details>
           )}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(440px,520px)]">
         {/* Left: players + timeline */}
-        <div className="min-w-0 xl:sticky xl:top-3 self-start space-y-3">
+        <div className="min-w-0 xl:sticky xl:top-16 self-start space-y-3">
           <Players
             ctl={ctl}
             original={origRef ? mediaOf(origRef) : null}
@@ -335,7 +333,7 @@ export function ReviewDetail({ review }: { review: Review }) {
             onPrev={() => move(-1)}
             onNext={() => move(1)}
           />
-          <div className="rounded-md border border-line p-2 pt-2.5">
+          <Card className="p-3 pt-3.5">
             <Timeline
               threads={threads}
               visible={visibleIds}
@@ -344,17 +342,15 @@ export function ReviewDetail({ review }: { review: Review }) {
               ctl={ctl}
               onSelect={(id) => select(id, { expand: true })}
             />
-          </div>
-          <p className="text-[12px] text-fg-muted">
-            Keys: <kbd className="font-mono">j</kbd>/<kbd className="font-mono">k</kbd> next/previous thread ·{" "}
-            <kbd className="font-mono">o</kbd> open · <kbd className="font-mono">space</kbd> play/pause ·{" "}
-            <kbd className="font-mono">a</kbd> switch audio · <kbd className="font-mono">Left</kbd>/<kbd className="font-mono">Right</kbd> seek 5 s
-            (with Shift: 1 s)
+          </Card>
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+            Keys: <Kbd>j</Kbd>/<Kbd>k</Kbd> next/previous thread · <Kbd>o</Kbd> open · <Kbd>space</Kbd> play/pause ·{" "}
+            <Kbd>a</Kbd> switch audio · <Kbd>←</Kbd>/<Kbd>→</Kbd> seek 5 s (with Shift: 1 s)
           </p>
           {refImages.length > 0 && (
-            <section aria-label="Reference images" className="rounded-md border border-line p-2">
+            <Card role="region" aria-label="Reference images" className="gap-0 p-3">
               <h2 className="text-[12px] font-semibold mb-1.5">
-                Reference images <span className="font-normal text-fg-muted">· not used by the dubbing evaluator yet</span>
+                Reference images <span className="font-normal text-muted-foreground">· not used by the dubbing evaluator yet</span>
               </h2>
               <ul className="flex flex-wrap gap-2">
                 {refImages.map((m) => {
@@ -364,23 +360,23 @@ export function ReviewDetail({ review }: { review: Review }) {
                       {u ? (
                         <a href={u.url} target="_blank" rel="noopener noreferrer">
                           {/* eslint-disable-next-line @next/next/no-img-element -- presigned URL */}
-                          <img src={u.url} alt={m.filename ?? "Reference image"} className="w-full aspect-video object-cover rounded border border-line" />
+                          <img src={u.url} alt={m.filename ?? "Reference image"} className="w-full aspect-video object-cover rounded border border-border" />
                         </a>
                       ) : (
-                        <div className="w-full aspect-video rounded border border-line bg-subtle" />
+                        <div className="w-full aspect-video rounded border border-border bg-muted" />
                       )}
-                      <p className="text-[11px] text-fg-muted truncate mt-0.5">{m.filename}</p>
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">{m.filename}</p>
                     </li>
                   );
                 })}
               </ul>
-            </section>
+            </Card>
           )}
         </div>
 
         {/* Right: threads */}
         <section aria-label="Review threads" className="min-w-0">
-          <div className="rounded-md border border-line p-2.5 mb-3 bg-subtle">
+          <Card className="p-3 mb-3">
             <FilterBar
               areaCounts={areaCounts}
               tagCounts={tagCounts}
@@ -389,20 +385,20 @@ export function ReviewDetail({ review }: { review: Review }) {
               shown={visible.length}
               total={threads.length}
             />
-          </div>
+          </Card>
           {visible.length === 0 && (
-            <p className="text-fg-muted text-[13px] py-6 text-center">
+            <p className="text-muted-foreground text-[13px] py-6 text-center">
               {threads.length ? "No threads match these filters." : "No findings. Nothing to review."}
             </p>
           )}
           {groups.map(([p, list]) =>
             list.length ? (
               <div key={p} className="mb-4">
-                <h2 className={`flex items-center gap-2 text-[13px] font-semibold mb-1.5 ${PRIORITY_META[p].fg}`}>
+                <h2 className={cx("flex items-center gap-2 text-sm font-semibold mb-2", PRIORITY_META[p].fg)}>
                   {PRIORITY_META[p].label}
-                  <span className="text-fg-muted font-normal tabular-nums">{list.length}</span>
-                  {p === "needs-human" && <span className="text-fg-muted font-normal text-[12px]">· low confidence, decide yourself</span>}
-                  {p === "nit" && <span className="text-fg-muted font-normal text-[12px]">· minor, optional</span>}
+                  <span className="text-muted-foreground font-normal tabular-nums">{list.length}</span>
+                  {p === "needs-human" && <span className="text-muted-foreground font-normal text-[12px]">· low confidence, decide yourself</span>}
+                  {p === "nit" && <span className="text-muted-foreground font-normal text-[12px]">· minor, optional</span>}
                 </h2>
                 <ul className="space-y-1.5">
                   {list.map((t) => (

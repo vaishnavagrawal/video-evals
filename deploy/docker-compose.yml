@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: vreview
       POSTGRES_DB: vreview
     ports:
-      - "55433:5432"
+      - "127.0.0.1:55433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
@@ -29,8 +29,8 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
       MINIO_API_CORS_ALLOW_ORIGIN: "*"
     ports:
-      - "59000:9000"
-      - "59001:9001"
+      - "127.0.0.1:59000:9000"
+      - "127.0.0.1:59001:9001"
     volumes:
       - minio_data:/data
     healthcheck:
@@ -57,8 +57,8 @@ services:
     image: ghcr.io/hatchet-dev/hatchet/hatchet-lite:v0.114.2
     restart: unless-stopped
     ports:
-      - "58888:8888"
-      - "57077:7077"
+      - "127.0.0.1:58888:8888"
+      - "127.0.0.1:57077:7077"
     environment:
       DATABASE_URL: "postgresql://vreview:vreview@postgres:5432/hatchet?sslmode=disable"
       SERVER_MSGQUEUE_KIND: "postgres"
@@ -89,7 +89,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "58000:8000"
+      - "127.0.0.1:58000:8000"
     env_file:
       - path: ../.env
         required: false

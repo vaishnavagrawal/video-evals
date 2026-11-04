@@ -4,7 +4,6 @@ from __future__ import annotations
 import io
 import json
 import logging
-import os
 import subprocess
 from pathlib import Path
 
@@ -60,12 +59,11 @@ def _to_mp3(wav: Path) -> bytes:
 
 
 def _cloud(wav: Path, language: str | None, model: str) -> dict:
-    from openai import OpenAI
+    from .providers import RoutedClient
 
-    client = OpenAI(api_key=os.environ.get("DUBEVAL_ASR_API_KEY") or os.environ.get("OMNIROUTE_API_KEY")
-                    or os.environ["OPENAI_API_KEY"],
-                    base_url=os.environ.get("DUBEVAL_ASR_BASE_URL") or os.environ.get("OMNIROUTE_BASE_URL")
-                    or os.environ.get("OPENAI_BASE_URL"), timeout=300, max_retries=2)
+    # Bare model ids go to the default provider; the gateway keeps its own DUBEVAL_ASR_* override.
+    client = RoutedClient(timeout=300, max_retries=2, legacy_key_envs=("DUBEVAL_ASR_API_KEY",),
+                          legacy_base_url_envs=("DUBEVAL_ASR_BASE_URL",))
     buf = io.BytesIO(_to_mp3(wav))
     buf.name = "audio.mp3"
     kw = {"language": language} if language else {}

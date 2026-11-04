@@ -40,9 +40,17 @@ class Settings(BaseSettings):
     # Browser origins allowed to call the API (comma-separated in VREVIEW_CORS_ORIGINS).
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:53000"]
 
-    # LLM models that write review-thread comments and the summary (comma-separated in
-    # VREVIEW_TRIAGE_LLM_MODELS). Empty = rule-based text only.
+    # Model roles. Each is a comma-separated fallback list of model references, `provider:model` or a bare
+    # model for the default provider (see dubeval.providers), e.g. `meta:muse-spark-1.3,gateway:gemini-flash`.
+    # A brief can still override them per review through `options`.
+    # Text judge for dubbing meaning/tone (VREVIEW_JUDGE_MODELS). Empty = DubConfig's built-in default.
+    judge_models: Annotated[list[str], NoDecode] = []
+    # Writes review-thread comments and the summary (VREVIEW_TRIAGE_LLM_MODELS). Empty = rule-based text only.
     triage_llm_models: Annotated[list[str], NoDecode] = []
+    # Multimodal (video + audio) second-opinion reviewer (VREVIEW_AV_JUDGE_MODELS). Empty = evaluator skipped.
+    av_judge_models: Annotated[list[str], NoDecode] = []
+    # Cloud ASR model (VREVIEW_ASR_MODEL). Empty = DubConfig's built-in default; "none" = local Whisper only.
+    asr_model: str | None = None
 
     webhook_secret: str = ""                               # HMAC-SHA256 key for outgoing webhooks
     # Webhook URLs must be https and resolve to public addresses (vreview.webhook_guard). Set
@@ -50,7 +58,7 @@ class Settings(BaseSettings):
     webhook_allow_http: bool = False
     public_base_url: str = "http://localhost:8000"
 
-    @field_validator("cors_origins", "triage_llm_models", mode="before")
+    @field_validator("cors_origins", "judge_models", "triage_llm_models", "av_judge_models", mode="before")
     @classmethod
     def _split_csv(cls, value):
         if isinstance(value, str):

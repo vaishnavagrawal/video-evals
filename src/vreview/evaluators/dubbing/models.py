@@ -22,8 +22,17 @@ class DubConfig(BaseModel):
 
     @classmethod
     def from_brief(cls, brief: Brief) -> "DubConfig":
+        """Brief options win; then the deployment's model roles (VREVIEW_JUDGE_MODELS, VREVIEW_ASR_MODEL)."""
+        from vreview.config import settings
+
+        s = settings()
+        defaults: dict = {}
+        if s.judge_models:
+            defaults["llm_models"] = list(s.judge_models)
+        if s.asr_model:
+            defaults["asr_cloud_model"] = None if s.asr_model.strip().lower() == "none" else s.asr_model.strip()
         return cls(src_lang=brief.source_language, tgt_langs=brief.target_languages,
-                   **brief.options.get("dubbing", {}))
+                   **{**defaults, **brief.options.get("dubbing", {})})
 
 
 class TrackRef(BaseModel):

@@ -194,13 +194,15 @@ def run_pair(src: Track, dub: Track, work: Path, cfg: Config) -> Report:
         judged = judge([r for r in rows if r["orig"] or r["dub"]], cfg.llm_models, src.lang.name, dub.lang.name,
                        pair_dir / "judge_cache.json", warnings)
         for ln in lines:
-            for x in judged.get(ln.index, {}).get("issues", []):
+            judged_line = judged.get(ln.index, {})
+            for x in judged_line.get("issues", []):
                 sev = x.get("severity") if x.get("severity") in SEV_WEIGHT else "minor"
                 issues.append({"category": x["category"], "source": "semantic", "severity": sev,
                                "confidence": float(x.get("confidence") or 0.6),
                                "start": round(ln.start, 2), "end": round(max(ln.end, ln.dub_end or ln.end), 2),
                                "line_index": ln.index, "description": x.get("explanation", ""),
-                               "fix_hint": x.get("fix_hint", "Re-translate this line."), "evidence": {}})
+                               "fix_hint": x.get("fix_hint", "Re-translate this line."),
+                               "evidence": {"model": judged_line["model"]} if judged_line.get("model") else {}})
         t = _clock(timings, "judge", t)
 
     # ---- frames: video untouched? then mouth activity on flagged windows (language independent)

@@ -8,7 +8,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -46,12 +45,10 @@ CATS = {"MEANING_MISMATCH", "MISSING_CONTENT", "ADDED_CONTENT", "TONE_MISMATCH",
 
 
 def _client():
-    from openai import OpenAI
+    """Routes each model reference to its provider (dubeval.providers); legacy DUBEVAL_LLM_* still work."""
+    from .providers import RoutedClient
 
-    return OpenAI(api_key=os.environ.get("DUBEVAL_LLM_API_KEY") or os.environ.get("OMNIROUTE_API_KEY")
-                  or os.environ["OPENAI_API_KEY"],
-                  base_url=os.environ.get("DUBEVAL_LLM_BASE_URL") or os.environ.get("OMNIROUTE_BASE_URL")
-                  or os.environ.get("OPENAI_BASE_URL"), timeout=150, max_retries=0)
+    return RoutedClient(timeout=150, max_retries=0)
 
 
 def _chunk(client, model: str, items: list[dict], src: str, tgt: str) -> list[dict]:
@@ -88,7 +85,11 @@ def judge(rows: list[dict], models: list[str], src: str, tgt: str, cache: Path, 
         for model in models:
             for attempt in range(2):
                 try:
-                    return k, _chunk(client, model, c, src, tgt)
+                    res = _chunk(client, model, c, src, tgt)
+                    for item in res:
+                        if isinstance(item, dict):
+                            item["model"] = model      # provenance: which model judged this line
+                    return k, res
                 except Exception as e:  # timeout / 429 / bad JSON -> retry, then next model
                     last = f"{model}: {str(e)[:160]}"
                     time.sleep(3 * (attempt + 1))

@@ -13,7 +13,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
 import re
 import time
 from collections import Counter
@@ -135,12 +134,10 @@ class LLMComments(TypedDict):
 
 
 def _client():
-    from openai import OpenAI
+    """Routes each model reference (`meta:muse-spark-1.3`, `gateway:gemini-flash`, ...) to its provider."""
+    from dubeval.providers import RoutedClient
 
-    return OpenAI(api_key=os.environ.get("DUBEVAL_LLM_API_KEY") or os.environ.get("OMNIROUTE_API_KEY")
-                  or os.environ["OPENAI_API_KEY"],
-                  base_url=os.environ.get("DUBEVAL_LLM_BASE_URL") or os.environ.get("OMNIROUTE_BASE_URL")
-                  or os.environ.get("OPENAI_BASE_URL"), timeout=REQUEST_TIMEOUT_S, max_retries=0)
+    return RoutedClient(timeout=REQUEST_TIMEOUT_S, max_retries=0)
 
 
 # ---------------------------------------------------------------------------------------------- inputs
@@ -383,7 +380,7 @@ def write_comments(threads: list[ThreadLike], issues_by_id: dict[str, Any], *, s
     `summary_model` names the model that wrote the summary. Both survive cache hits.
 
     `client` is an OpenAI-compatible client; by default one is built lazily from the environment
-    (`DUBEVAL_LLM_*`, then `OMNIROUTE_*`, then `OPENAI_*`) and only if a call is needed.
+    through `dubeval.providers` and only if a call is needed.
     """
     out: LLMComments = {"threads": {}, "summary": None, "warnings": [], "summary_model": None}
     if not isinstance(verdict, str) or not verdict.strip():

@@ -27,7 +27,7 @@ log = logging.getLogger("vreview.triage_llm")
 
 PROMPT_VERSION = "2"        # bump when the output contract changes; template text is hashed as well
 CHUNK_SIZE = 10             # threads per LLM call
-REQUEST_TIMEOUT_S = 60.0
+REQUEST_TIMEOUT_S = 180.0   # reasoning models (Muse Spark) take 60-120 s on a 10-thread chunk
 RETRIES = 1                 # extra attempts per model before falling through to the next one
 RETRY_DELAY_S = 2.0
 WORKERS = 3

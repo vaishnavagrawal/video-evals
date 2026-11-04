@@ -124,7 +124,7 @@ def test_success_chunks_threads_and_writes_summary(store):
     assert len(client.summary_calls) == 1
     for c in client.calls:
         assert c["temperature"] == 0
-        assert c["timeout"] == 60
+        assert c["timeout"] == triage_llm.REQUEST_TIMEOUT_S
         assert c["model"] == "m1"
     # one cache blob per call, keyed under the prefix
     assert len(cache_files(store)) == 3

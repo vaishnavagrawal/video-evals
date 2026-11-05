@@ -6,10 +6,15 @@ senior engineer reviews a pull request. You upload the media and a brief, and it
 come back over REST, MCP or a webhook, and a review UI plays the original and the dub side by side.
 
 Built for the Meta Global AI Developer Hackathon (Nov 2026), **Indie developer track**, theme **Build for
-Your World**. Meta's **Muse
-Spark** watches and listens to the video, and deterministic signal processing keeps it honest.
+Your World**. Meta's **Muse Spark** watches and listens to the video, and deterministic signal processing
+keeps it honest.
 
-**Demo video (1:42):** https://github.com/vaishnavagrawal/video-evals/releases/download/demo-2026-11-04/vreview-demo.mp4
+**Demo video (1:42):** [watch on Google Drive](https://drive.google.com/file/d/1czXDR0c8n_BgiNQk4AEeC3OAW8K5r281/view?usp=sharing)
+
+**Contents:** [How Meta's models are used](#how-metas-models-are-used) ·
+[Architecture](#architecture) · [Pipeline](#pipeline) · [What's in the repo](#whats-in-the-repo) ·
+[Models and providers](#models-and-providers) · [Run locally](#run-locally) · [Results](#results) ·
+[Known limits](#known-limits) · [Documentation](#documentation)
 
 ## How Meta's models are used
 
@@ -25,6 +30,54 @@ audio-video judge inherits its window's bounds, and a disputed issue keeps its t
 `needs-human`. That's the defence against hallucinated issues.
 
 Every model is a config value, so nothing is tied to Meta or any other vendor (see [Models and providers](#models-and-providers)).
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Clients
+        UI["Web app<br/>Next.js + better-auth"]
+        Agent["Generation pipelines / agents"]
+    end
+
+    subgraph Platform
+        API["FastAPI<br/>REST /v1 + MCP /mcp"]
+        Hatchet["Hatchet engine<br/>workflow DAG, retries"]
+        Worker["Python worker<br/>dubbing + av_judge evaluators"]
+        PG[("Postgres<br/>runs, issues, feedback,<br/>pipeline events")]
+        S3[("MinIO / Cloudflare R2<br/>media, stage cache,<br/>review.json")]
+    end
+
+    LLM["Model providers<br/>Meta Muse Spark, gateway,<br/>any OpenAI-compatible"]
+    Hook["Client webhook"]
+
+    UI -- "Bearer JWT" --> API
+    Agent -- "REST / MCP" --> API
+    API -. "JWKS verify" .-> UI
+    UI -- "presigned multipart upload" --> S3
+    API --> PG
+    API -- "enqueue review" --> Hatchet
+    Hatchet -- "gRPC tasks" --> Worker
+    Worker --> S3
+    Worker --> PG
+    Worker -- "judge, AV judge, comments" --> LLM
+    Worker -- "HMAC-signed" --> Hook
+```
+
+| Component | Role | Code |
+|---|---|---|
+| Web app | Login, dashboard, upload, review player with synced original/dub, issue timeline, live pipeline view, feedback | [`web/`](web/) |
+| API | REST under `/v1` and MCP tools at `/mcp`. Every query is scoped to the tenant in the better-auth JWT. Issues presigned upload URLs, so media never passes through the API | [`src/vreview/api/`](src/vreview/api/) |
+| Orchestration | Hatchet DAG with a child run per audio track and per dub, per-task retries and timeouts, per-tenant concurrency | [`src/vreview/workflows/review.py`](src/vreview/workflows/review.py) |
+| Evaluators | Plugins behind one `Evaluator` protocol: `dubbing` (wraps the `dubeval` engine) and `av_judge` (Muse Spark over located clips) | [`src/vreview/evaluators/`](src/vreview/evaluators/), [`src/dubeval/`](src/dubeval/) |
+| Triage | Turns issues into code-review threads with priorities and a verdict. The LLM writes the text but can't change priorities, times or the issue set | [`src/vreview/triage.py`](src/vreview/triage.py), [`triage_llm.py`](src/vreview/triage_llm.py) |
+| Storage | Content-addressed keys: `media/<sha256>`, `cache/<sha256>/<stage>@<ver>/<cfg_hash>`, `reviews/<run_id>` | [`src/vreview/storage/`](src/vreview/storage/) |
+| Database | Postgres + SQLAlchemy 2 + Alembic migrations | [`src/vreview/db/`](src/vreview/db/), [`alembic/`](alembic/) |
+| Webhooks | HMAC-signed delivery when a review finishes. Targets must be https and resolve to public addresses (SSRF guard) | [`src/vreview/webhooks.py`](src/vreview/webhooks.py), [`webhook_guard.py`](src/vreview/webhook_guard.py) |
+
+Design details: [`docs/architecture.md`](docs/architecture.md) covers the `dubeval` engine (detectors, output
+contract, caching, CPU cost). [`raw-plans/video-review-platform.md`](raw-plans/video-review-platform.md) has
+the platform plan and the reasoning behind each stack choice.
 
 ## Pipeline
 
@@ -120,4 +173,16 @@ ensemble kept all 3 and raised confidence on the one both found. That's why the 
   stays on Whisper for now.
 - Reviews run on CPU. Long videos are slow until the feature stage moves to GPU workers.
 
-More: `docs/pending.md`, `docs/gaps-and-roadmap.md`.
+## Documentation
+
+| Doc | What it covers |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | `dubeval` engine: design principles, pipeline, modules, detectors, output contract, caching, CPU cost |
+| [`docs/triage-and-ui-contract.md`](docs/triage-and-ui-contract.md) | Triage model (priorities, areas, threads, verdict), data shapes, API additions, web app contract |
+| [`docs/mvp-summary.md`](docs/mvp-summary.md) | Platform stack, what's built, REST endpoints and MCP tools |
+| [`raw-plans/video-review-platform.md`](raw-plans/video-review-platform.md) | Original platform plan: perception layer, evaluator interface, review agent, stack decisions |
+| [`docs/gaps-and-roadmap.md`](docs/gaps-and-roadmap.md) | Known gaps and the roadmap |
+| [`docs/pending.md`](docs/pending.md) | Open items by priority |
+| [`deploy/README.md`](deploy/README.md) | Local stack: services, ports, Hatchet token, `.env` |
+| [`deploy/coolify/README.md`](deploy/coolify/README.md) | Production deploy on Coolify: variables, runbook, backups, upgrades |
+| [`web/README.md`](web/README.md) | Web app: dev setup, production image, user management, mock mode |

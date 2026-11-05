@@ -4,7 +4,7 @@
 **Track / theme:** Indie developer · Build for Your World
 **Repo:** https://github.com/vaishnavagrawal/video-evals
 **Live demo:** URL and judge login are provided in the submission form (sign-up is closed)
-**Demo video:** https://github.com/vaishnavagrawal/video-evals/releases/download/demo-2026-11-04/vreview-demo.mp4
+**Demo video:** https://drive.google.com/file/d/1czXDR0c8n_BgiNQk4AEeC3OAW8K5r281/view?usp=sharing
 
 ## One-liner
 vreview reviews a dubbed or AI-generated video the way a senior engineer reviews a pull request: timestamped

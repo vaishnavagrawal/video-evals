@@ -9,7 +9,7 @@ Built for the Meta Global AI Developer Hackathon (Nov 2026), **Indie developer t
 Your World**. Meta's **Muse
 Spark** watches and listens to the video, and deterministic signal processing keeps it honest.
 
-<!-- DEMO: link to the demo video / GIF here -->
+**Demo video (1:42):** https://github.com/vaishnavagrawal/video-evals/releases/download/demo-2026-11-04/vreview-demo.mp4
 
 ## How Meta's models are used
 
